@@ -1,0 +1,2411 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kasa Açma Oyunu MK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* Preloader Stilleri */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, #1a1a1a, #000000);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999; /* En üstte olmasını sağlar */
+      transition: opacity 1s ease-out, visibility 1s ease-out;
+      color: white;
+    }
+
+    #preloader.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loader {
+      border: 8px solid #333;
+      border-top: 8px solid #00ffff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1.5s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #preloader h2 {
+      margin-top: 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      color: #00ff99;
+      text-shadow: 0 0 10px rgba(0, 255, 153, 0.7);
+    }
+
+    /* Diğer mevcut CSS kodların */
+    body {
+      margin: 0;
+      font-family: 'Share Tech Mono', monospace;
+      background: radial-gradient(circle, #1a1a1a, #000000);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 40px;
+      background: linear-gradient(45deg, #00ffff, #8a2be2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    }
+
+    #current-time {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #00ff99;
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 10px rgba(0, 255, 153, 0.7);
+    }
+
+    #stats {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 25px;
+      font-size: 20px;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid #00ffff;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    #balance span, #case-cost span, #player-xp span {
+      margin-left: 8px;
+      font-weight: bold;
+      color: #00ff99;
+    }
+
+    #case {
+      width: 95%;
+      max-width: 700px;
+      overflow: hidden;
+      border: 3px solid #00ffff;
+      border-radius: 15px;
+      background: #0d0d0d;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+      margin-bottom: 25px;
+    }
+
+    #items {
+      display: flex;
+      transition: transform 3.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .item {
+      min-width: 120px;
+      height: 120px;
+      margin: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      border-radius: 10px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+      transition: transform 0.3s, box-shadow 0.3s;
+      text-align: center;
+      padding: 5px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .item.error {
+        background: linear-gradient(135deg, #cc0000, #ff4d4d);
+        border: 2px solid #ff0000;
+        color: white;
+        font-size: 14px;
+        text-shadow: 0 0 5px black;
+    }
+
+    .item img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 5px;
+      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+    }
+
+    .item.highlighted {
+      box-shadow: 0 0 30px white, 0 0 60px currentColor, inset 0 0 20px rgba(255, 255, 255, 0.8);
+      transform: scale(1.15);
+      border: 3px solid white;
+    }
+
+    .item-name {
+        font-size: 14px;
+        position: absolute;
+        bottom: 5px;
+        width: 100%;
+    }
+
+    /* Nadirlik renkleri */
+    .common { background: linear-gradient(135deg, #333, #555); border: 2px solid #555; }
+    .common .item-name { color: #ccc; }
+    .rare { background: linear-gradient(135deg, #2b6cb0, #4299e1); border: 2px solid #4299e1; }
+    .rare .item-name { color: #90cdf4; }
+    .epic { background: linear-gradient(135deg, #6b46c1, #805ad5); border: 2px solid #805ad5; }
+    .epic .item-name { color: #d6bcfa; }
+    .legendary { background: linear-gradient(135deg, #dd6b20, #ed8936); border: 2px solid #ed8936; }
+    .legendary .item-name { color: #fbd38d; }
+    .exotic { background: linear-gradient(135deg, #a0aec0, #cbd5e0); border: 2px solid #cbd5e0; }
+    .exotic .item-name { color: #4a5568; }
+    .ancient { background: linear-gradient(135deg, #e53e3e, #f56565); border: 2px solid #f56565; }
+    .ancient .item-name { color: #fed7d7; }
+    .immortal { background: linear-gradient(135deg, #d69e2e, #ecc94b); border: 2px solid #ecc94b; }
+    .immortal .item-name { color: #feebc8; }
+
+    #openBtn {
+      padding: 16px 35px;
+      font-size: 22px;
+      border: none;
+      border-radius: 15px;
+      background: linear-gradient(45deg, #00ff99, #00ccff);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00ffd0, 0 0 40px rgba(0, 255, 208, 0.5);
+      transition: all 0.3s ease;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #openBtn:hover {
+      background: linear-gradient(45deg, #00cc77, #0099cc);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 25px #00ffd0, 0 5px 50px rgba(0, 255, 208, 0.7);
+    }
+
+    #openBtn:disabled {
+      background: linear-gradient(45deg, #444, #666);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 26px;
+      font-weight: bold;
+      text-shadow: 0 0 15px #fff, 0 0 25px currentColor;
+      text-align: center;
+      min-height: 40px;
+    }
+
+    .highlight {
+      animation: pop 0.6s ease-out;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 1; text-shadow: 0 0 20px #fff, 0 0 30px currentColor; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Ortadaki seçim çubuğu */
+    .selector {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 6px;
+      background: #ff00ea;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 0 15px #ff00ea, 0 0 25px rgba(255, 0, 234, 0.7);
+      border-radius: 3px;
+    }
+
+    /* Genel Modal Stilleri */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+
+    .modal-overlay.show {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+        border: 2px solid #00ffff;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 0 40px rgba(0, 255, 255, 0.7);
+        max-width: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        transform: translateY(-20px);
+        transition: transform 0.3s ease-in-out;
+        position: relative;
+    }
+    .modal-overlay.show .modal-content {
+        transform: translateY(0);
+    }
+
+    .modal-content h2, .modal-content h3 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 28px;
+        margin-bottom: 15px;
+        background: linear-gradient(45deg, #00ffff, #8a2be2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .modal-content button.close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #00ffff;
+        font-size: 30px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .modal-content button.close-btn:hover {
+        transform: scale(1.2);
+    }
+
+    /* Envanter Modal Stilleri */
+    #inventoryModal .modal-content {
+      max-width: 800px;
+    }
+    #inventory-filters {
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    #inventory-filters select, #inventory-filters button {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid #00ffff;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+    #inventory-filters select:hover, #inventory-filters button:hover {
+        background-color: rgba(0, 255, 255, 0.2);
+        border-color: #00ff99;
+    }
+    #inventory-filters button.active {
+        background-color: #00ffff;
+        color: #1a1a1a;
+        box-shadow: 0 0 8px #00ffff;
+    }
+    #inventory {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      min-height: 150px;
+    }
+
+    .inventory-item {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 2px solid;
+      padding: 5px;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .inventory-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(138, 43, 226, 0.5);
+    }
+
+    .inventory-item img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 3px;
+    }
+
+    .inventory-item-name {
+      font-size: 10px;
+      position: absolute;
+      bottom: 3px;
+      width: 100%;
+    }
+
+    /* Favori öğe için stil */
+    .inventory-item.favorite {
+        border-color: gold !important;
+        box-shadow: 0 0 10px gold, inset 0 0 5px gold !important;
+    }
+    .inventory-item .favorite-star {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: gold;
+        font-size: 18px;
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+    }
+
+    .inventory-item.common { background: #333; border-color: #555; }
+    .inventory-item.common .inventory-item-name { color: #ccc; }
+    .inventory-item.rare { background: #2b6cb0; border-color: #4299e1; }
+    .inventory-item.rare .inventory-item-name { color: #90cdf4; }
+    .inventory-item.epic { background: #6b46c1; border-color: #805ad5; }
+    .inventory-item.epic .inventory-item-name { color: #d6bcfa; }
+    .inventory-item.legendary { background: #dd6b20; border-color: #ed8936; }
+    .inventory-item.legendary .inventory-item-name { color: #fbd38d; }
+    .inventory-item.exotic { background: #a0aec0; border-color: #cbd5e0; }
+    .inventory-item.exotic .inventory-item-name { color: #4a5568; }
+    .inventory-item.ancient { background: #e53e3e; border-color: #f56565; }
+    .inventory-item.ancient .item-name { color: #fed7d7; }
+    .immortal { background: linear-gradient(135deg, #d69e2e, #ecc94b); border: 2px solid #ecc94b; }
+    .immortal .item-name { color: #feebc8; }
+
+    /* Boost Shop Stilleri */
+    #boostShopModal .modal-content {
+      max-width: 700px;
+    }
+    #boosts-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+    }
+    .boost-item {
+        width: 150px;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 2px solid;
+        padding: 10px;
+        box-sizing: border-box;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .boost-item:hover:not(:disabled) {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+
+    .boost-item.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .boost-item .boost-name {
+        font-size: 16px;
+        margin-bottom: 5px;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .boost-item .boost-description {
+        font-size: 12px;
+        margin-bottom: 8px;
+        opacity: 0.8;
+    }
+
+    .boost-item .boost-price {
+        font-size: 15px;
+        font-weight: bold;
+        color: #00ff99;
+        position: absolute;
+        bottom: 8px;
+    }
+
+    /* Boost Nadirlik renkleri - Mevcut nadirlik renklerini kullanabiliriz */
+    .boost-item.common-boost { background: linear-gradient(135deg, #333, #555); border-color: #555; }
+    .boost-item.rare-boost { background: linear-gradient(135deg, #2b6cb0, #4299e1); border-color: #4299e1; }
+    .boost-item.epic-boost { background: linear-gradient(135deg, #6b46c1, #805ad5); border-color: #805ad5; }
+    .boost-item.legendary-boost { background: linear-gradient(135deg, #dd6b20, #ed8936); border-color: #ed8936; }
+    .boost-item.immortal-boost { background: linear-gradient(135deg, #d69e2e, #ecc94b); border-color: #ecc94b; }
+
+    /* Yeni hata mesajı div'i için stil */
+    #errorMessage {
+      color: #ff4d4d;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
+      min-height: 25px;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+    #errorMessage.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Item Detayları Modal */
+    .item-details-modal {
+        max-width: 400px;
+    }
+    .item-details-modal h3 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 28px;
+        margin-bottom: 15px;
+        background: linear-gradient(45deg, #00ffff, #8a2be2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .item-details-modal .item-display {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .item-details-modal .item-display img {
+        width: 150px;
+        height: 150px;
+        object-fit: contain;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        border: 2px solid currentColor;
+        box-shadow: 0 0 15px currentColor;
+    }
+    .item-details-modal .item-display .item-rarity-text {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 5px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .modal-buttons button {
+        padding: 12px 25px;
+        font-size: 18px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Share Tech Mono', monospace;
+        color: white;
+    }
+
+    .modal-buttons button.sell-btn {
+        background: linear-gradient(45deg, #ff4d4d, #cc0000);
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    .modal-buttons button.sell-btn:hover {
+        background: linear-gradient(45deg, #cc0000, #990000);
+        transform: translateY(-2px);
+    }
+
+    .modal-buttons button.favorite-btn {
+        background: linear-gradient(45deg, #ffd700, #ff8c00);
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+    .modal-buttons button.favorite-btn.active {
+        background: linear-gradient(45deg, #ccaa00, #cc7000);
+        box-shadow: 0 0 15px gold;
+        transform: translateY(-2px);
+    }
+    .modal-buttons button.favorite-btn:hover {
+        background: linear-gradient(45deg, #ffcc00, #ffa500);
+        transform: translateY(-2px);
+    }
+
+    .modal-buttons button.close-btn-small {
+        background: linear-gradient(45deg, #555, #333);
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+    .modal-buttons button.close-btn-small:hover {
+        background: linear-gradient(45deg, #333, #111);
+        transform: translateY(-2px);
+    }
+
+    .modal-message {
+        margin-top: 15px;
+        font-size: 16px;
+        color: #00ff99;
+        font-weight: bold;
+    }
+
+    /* Versiyon Yamaları Stili */
+    #versionPatchesModal .modal-content {
+      max-width: 600px;
+    }
+    #patches-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    #patches-list li {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed rgba(0, 255, 255, 0.3);
+      line-height: 1.4;
+    }
+
+    #patches-list li:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    #patches-list li strong {
+      color: #00ff99;
+      font-size: 15px;
+    }
+
+    /* Etkinlik Görseli */
+    #active-events-display {
+        margin-top: 20px;
+        color: #00ffff;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 18px;
+        text-align: center;
+        text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        min-height: 25px; /* Yerin ayrılmasını sağlar */
+        display: none; /* Varsayılan olarak gizli */
+    }
+
+    /* Başarımlar Bölümü */
+    #achievementsModal .modal-content {
+      max-width: 900px;
+    }
+    #achievements-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        min-height: 100px;
+    }
+
+    .achievement-item {
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 2px solid #8a2be2;
+        border-radius: 10px;
+        padding: 15px;
+        width: 250px;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px;
+        box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .achievement-item.completed {
+        border-color: gold;
+        box-shadow: 0 0 15px gold;
+        background-color: rgba(30, 20, 0, 0.7); /* Altın rengine yakın koyu bir arka plan */
+    }
+
+    .achievement-item h4 {
+        color: #00ffff;
+        font-family: 'Orbitron', sans-serif;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .achievement-item p {
+        font-size: 14px;
+        color: #e0f7fa;
+        margin-bottom: 10px;
+        flex-grow: 1; /* Açıklamanın yer kaplamasını sağlar */
+    }
+
+    .achievement-item .reward-text {
+        font-size: 14px;
+        font-weight: bold;
+        color: #00ff99;
+    }
+    .achievement-item.completed .reward-text {
+        color: gold; /* Tamamlandığında ödül metni altın rengi */
+    }
+
+    .achievement-item .completion-status {
+        font-size: 12px;
+        color: #ccc;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    .achievement-item.completed .completion-status {
+        color: #00ff99; /* Tamamlandığında durum metni yeşil */
+        font-weight: bold;
+    }
+
+    /* Hamburger Menü */
+    #main-menu-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: linear-gradient(45deg, #00ffff, #8a2be2);
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+        transition: all 0.3s ease;
+    }
+    #main-menu-btn:hover {
+        background: linear-gradient(45deg, #00b0b0, #6a1ac1);
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.9);
+    }
+
+    /* YENİLENMİŞ MENÜ STİLLERİ */
+    #mainMenuModal .modal-content {
+        max-width: 450px;
+    }
+    #mainMenuModal .menu-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    #mainMenuModal .menu-options button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 100px;
+        padding: 10px;
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Orbitron', sans-serif;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+        position: relative; /* For notification dot */
+    }
+    #mainMenuModal .menu-options button:hover {
+        background: linear-gradient(45deg, #00cc77, #0099cc);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 255, 153, 0.7);
+    }
+    .menu-icon {
+        width: 36px;
+        height: 36px;
+    }
+    .menu-icon svg {
+        width: 100%;
+        height: 100%;
+        fill: white;
+    }
+    .notification-dot {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        background-color: red;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 10px red;
+    }
+
+
+    /* Hızlı Erişim Butonları */
+    #quick-access-buttons {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-access-btn {
+        background: linear-gradient(45deg, #8a2be2, #00ffff);
+        color: white;
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(138, 43, 226, 0.7);
+        transition: all 0.3s ease;
+    }
+    .quick-access-btn:hover {
+        background: linear-gradient(45deg, #6a1ac1, #00b0b0);
+        transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(138, 43, 226, 0.9);
+    }
+    .quick-access-btn .quick-icon {
+        width: 28px;
+        height: 28px;
+    }
+    .quick-access-btn .quick-icon svg {
+        width: 100%;
+        height: 100%;
+        fill: white;
+    }
+
+    /* Otomatik Sat Ayarları */
+    #autoSellModal .modal-content {
+      max-width: 500px;
+    }
+    #auto-sell-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    #auto-sell-options label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        color: #e0f7fa;
+    }
+    #auto-sell-options input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #00ff99;
+    }
+    #saveAutoSellBtn {
+        padding: 10px 20px;
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.2s ease;
+    }
+    #saveAutoSellBtn:hover {
+        background: linear-gradient(45deg, #00cc77, #0099cc);
+        transform: translateY(-2px);
+    }
+    #auto-sell-status {
+      font-size: 16px;
+      color: #00ff99;
+      margin-top: 10px;
+    }
+
+    /* Otomatik Kasa Aç Ayarları */
+    #autoOpenModal .modal-content {
+      max-width: 500px;
+    }
+    #auto-open-info {
+        font-size: 16px;
+        color: #e0f7fa;
+        margin-bottom: 15px;
+    }
+    #auto-open-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    #auto-open-start-btn, #auto-open-stop-btn {
+        padding: 12px 25px;
+        font-size: 18px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Share Tech Mono', monospace;
+        color: white;
+    }
+    #auto-open-start-btn {
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+    }
+    #auto-open-start-btn:hover:not(:disabled) {
+        background: linear-gradient(45deg, #00cc77, #0099cc);
+        transform: translateY(-2px);
+    }
+    #auto-open-start-btn:disabled {
+        background: linear-gradient(45deg, #444, #666);
+        cursor: not-allowed;
+    }
+    #auto-open-stop-btn {
+        background: linear-gradient(45deg, #ff4d4d, #cc0000);
+    }
+    #auto-open-stop-btn:hover:not(:disabled) {
+        background: linear-gradient(45deg, #cc0000, #990000);
+        transform: translateY(-2px);
+    }
+
+    #auto-open-count {
+      font-size: 20px;
+      color: #00ff99;
+      margin-top: 15px;
+    }
+
+    /* Language Select Modal */
+    #languageSelectModal .modal-content {
+        max-width: 500px;
+    }
+    #language-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    #language-options button {
+        padding: 12px 20px;
+        font-size: 18px;
+        background: linear-gradient(45deg, #00ffff, #8a2be2);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Orbitron', sans-serif;
+    }
+    #language-options button:hover {
+        background: linear-gradient(45deg, #00ccff, #6a1ac1);
+        transform: translateY(-2px);
+    }
+    #language-options button.selected {
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+        box-shadow: 0 0 15px rgba(0, 255, 153, 0.7);
+    }
+
+    /* Daily Rewards Modal Styles */
+    #dailyRewardModal .modal-content {
+        max-width: 750px;
+    }
+    #daily-rewards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .daily-reward-item {
+        border: 2px solid #666;
+        border-radius: 10px;
+        padding: 15px;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    .daily-reward-item.claimable {
+        border-color: #00ff99;
+        box-shadow: 0 0 15px #00ff99;
+        cursor: pointer;
+        transform: scale(1.05);
+    }
+    .daily-reward-item.claimed {
+        border-color: #8a2be2;
+        opacity: 0.7;
+    }
+    .daily-reward-item .day-number {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    .daily-reward-item .reward-preview img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+    }
+    .daily-reward-item .reward-preview span {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00ff99;
+    }
+    .daily-reward-item .reward-name {
+        font-size: 12px;
+        margin-top: 8px;
+        text-align: center;
+    }
+    #claimDailyRewardBtn {
+        margin-top: 25px;
+        padding: 12px 25px;
+        font-size: 18px;
+    }
+
+    /* CS Path Modal Styles */
+    #csPathModal .modal-content {
+        max-width: 600px;
+    }
+    #cs-path-progress-bar-container {
+        width: 100%;
+        height: 30px;
+        background-color: #222;
+        border-radius: 15px;
+        border: 1px solid #00ffff;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    #cs-path-progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #00ff99, #00ccff);
+        border-radius: 15px;
+        transition: width 0.5s ease;
+    }
+    #cs-path-xp-text {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    #cs-path-rewards-list {
+        max-height: 50vh;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .cs-path-tier {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: rgba(0, 0, 0, 0.4);
+        border: 1px solid #444;
+        border-radius: 10px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+    }
+    .cs-path-tier.unlocked {
+      border-color: #00ff99;
+      box-shadow: 0 0 8px rgba(0, 255, 153, 0.5);
+    }
+    .cs-path-tier.claimed {
+      border-color: #8a2be2;
+      opacity: 0.6;
+    }
+    .cs-path-tier-info {
+        text-align: left;
+    }
+    .cs-path-tier-info .tier-level {
+        font-family: 'Orbitron', sans-serif;
+        color: #00ffff;
+        font-size: 18px;
+    }
+    .cs-path-tier-info .tier-reward {
+        font-size: 14px;
+        color: #ccc;
+    }
+    .cs-path-tier .claim-btn {
+        padding: 8px 15px;
+        font-size: 14px;
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .cs-path-tier .claim-btn:disabled {
+        background: #555;
+        cursor: not-allowed;
+    }
+
+    /* YENİ: Başarım Bildirimi Stilleri */
+    #achievement-toast {
+      position: fixed;
+      top: 20px;
+      right: -500px; /* Başlangıçta ekran dışında */
+      z-index: 10001;
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+      color: white;
+      border: 2px solid gold;
+      border-radius: 10px;
+      padding: 15px 20px;
+      box-shadow: 0 5px 25px rgba(255, 215, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: right 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    #achievement-toast.show {
+      right: 20px; /* Ekrana kaydır */
+    }
+    #achievement-toast .toast-icon {
+      font-size: 36px;
+    }
+    #achievement-toast .toast-content h4 {
+      margin: 0 0 5px 0;
+      font-family: 'Orbitron', sans-serif;
+      color: gold;
+    }
+    #achievement-toast .toast-content p {
+      margin: 0;
+      font-size: 14px;
+      color: #eee;
+    }
+
+    /* YENİ: Küçük Buton Stilleri */
+    #quick-actions-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .quick-action-btn {
+      padding: 8px;
+      width: 50px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+      background: linear-gradient(45deg, #8a2be2, #6a1ac1);
+      transition: all 0.2s ease;
+    }
+    .quick-action-btn .quick-action-icon {
+        width: 24px;
+        height: 24px;
+    }
+    .quick-action-btn .quick-action-icon svg {
+        fill: white;
+        width: 100%;
+        height: 100%;
+    }
+    .quick-action-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(138, 43, 226, 0.7);
+    }
+    .quick-action-btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    
+    /* Medya sorguları */
+    @media (max-width: 768px) {
+      h1 { font-size: 32px; }
+      #current-time { font-size: 20px; }
+      #stats { flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 16px; }
+      #case { max-width: 90%; }
+      .item { min-width: 90px; height: 90px; margin: 5px; }
+      .item img { width: 60px; height: 60px; }
+      .item-name { font-size: 12px; }
+      #openBtn { padding: 12px 25px; font-size: 18px; }
+      #result { font-size: 20px; }
+      #errorMessage { font-size: 16px; }
+      .modal-content h2, .modal-content h3 { font-size: 24px; }
+      .inventory-item { width: 80px; height: 80px; }
+      .inventory-item img { width: 50px; height: 50px; }
+      .inventory-item-name { font-size: 9px; }
+      .boost-item { width: 120px; height: 100px; padding: 8px; }
+      .boost-item .boost-name { font-size: 14px; }
+      .boost-item .boost-description { font-size: 10px; }
+      .boost-item .boost-price { font-size: 13px; }
+      .item-details-modal h3 { font-size: 22px; }
+      .item-details-modal .item-display img { width: 100px; height: 100px; }
+      .modal-buttons button { padding: 10px 15px; font-size: 16px; }
+      #main-menu-btn { font-size: 18px; padding: 8px 12px; }
+      #mainMenuModal .menu-options { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; }
+      #mainMenuModal .menu-options button { height: 80px; }
+      .menu-icon { width: 28px; height: 28px; }
+      .quick-access-btn { width: 45px; height: 45px; }
+      .quick-access-btn .quick-icon { width: 24px; height: 24px; }
+      .achievement-item { width: 100%; }
+      #auto-sell-options label { font-size: 16px; }
+      #auto-sell-options input[type="checkbox"] { width: 18px; height: 18px; }
+      #auto-open-info { font-size: 14px; }
+      #auto-open-start-btn, #auto-open-stop-btn { padding: 10px 20px; font-size: 16px; }
+      #auto-open-count { font-size: 18px; }
+      #language-options { grid-template-columns: 1fr; }
+      #language-options button { font-size: 16px; padding: 10px 15px; }
+      .daily-reward-item { padding: 10px; }
+      #daily-rewards-grid { gap: 10px; }
+    }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 28px; text-align: center; }
+      #current-time { font-size: 18px; }
+      #stats { width: 90%; }
+      #case { border-radius: 10px; }
+      .item { min-width: 70px; height: 70px; margin: 4px; font-size: 10px; }
+      .item img { width: 45px; height: 45px; }
+      .item-name { font-size: 10px; }
+      #openBtn { padding: 10px 20px; font-size: 16px; }
+      #result { font-size: 18px; }
+      #errorMessage { font-size: 14px; }
+      .modal-content h2, .modal-content h3 { font-size: 20px; }
+      .inventory-item { width: 70px; height: 70px; margin: 8px; }
+      .inventory-item img { width: 40px; height: 40px; }
+      .boost-item { width: 100px; height: 90px; padding: 5px; }
+      .boost-item .boost-name { font-size: 12px; }
+      .boost-item .boost-description { font-size: 9px; }
+      .boost-item .boost-price { font-size: 11px; }
+      .item-details-modal h3 { font-size: 20px; }
+      .item-details-modal .item-display img { width: 80px; height: 80px; }
+      .modal-buttons { flex-direction: column; gap: 10px; }
+      .modal-buttons button { width: 100%; }
+      #main-menu-btn { font-size: 16px; padding: 6px 10px; }
+      .menu-icon { width: 24px; height: 24px; }
+      .quick-access-btn { width: 40px; height: 40px; }
+      .quick-access-btn .quick-icon { width: 20px; height: 20px; }
+      #auto-sell-options label { font-size: 14px; }
+      #auto-sell-options input[type="checkbox"] { width: 16px; height: 16px; }
+      #auto-open-info { font-size: 12px; }
+      #auto-open-start-btn, #auto-open-stop-btn { padding: 8px 15px; font-size: 14px; }
+      #auto-open-count { font-size: 16px; }
+      #language-options button { font-size: 14px; padding: 8px 12px; }
+      #achievement-toast { width: 90%; right: -100%; top: 10px; }
+      #achievement-toast.show { right: 5%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="preloader">
+    <div class="loader"></div>
+    <h2 data-lang-key="loading">Yükleniyor...</h2>
+  </div>
+
+  <div id="achievement-toast">
+      <span class="toast-icon">🏆</span>
+      <div class="toast-content">
+          <h4 id="toast-title"></h4>
+          <p id="toast-desc"></p>
+      </div>
+  </div>
+
+  <button id="main-menu-btn" data-lang-key="menuBtn">☰ Menü</button>
+
+  <h1 data-lang-key="gameTitle">🎁 CS:GO Kasa Açma Simülasyonu MK</h1>
+
+  <div id="current-time"></div> 
+
+  <div id="stats">
+    <div id="balance" data-lang-key="balance">Bakiye: <span id="balance-amount">1000</span>$</div>
+    <div id="case-cost" data-lang-key="caseCost">Kasa Maliyeti: <span id="cost-amount">100</span>$</div>
+    <div id="player-xp" data-lang-key="playerXP">XP: <span id="xp-amount">0</span></div>
+  </div>
+
+  <div id="active-events-display"></div>
+
+  <div id="case">
+    <div class="selector"></div>
+    <div id="items"></div>
+  </div>
+
+  <button id="openBtn" data-lang-key="openCaseBtn">Kasayı Aç</button>
+  <div id="quick-actions-container">
+      <button id="sellLastBtn" class="quick-action-btn" disabled>
+          <span class="quick-action-icon">
+              <svg viewBox="0 0 24 24"><path d="M11 18h2v-4h4v-2h-4V8h-2v4H7v2h4zm-5 4h14V6H6zM8 2h8v2H8z"/></svg>
+          </span>
+      </button>
+      <button id="muteBtn" class="quick-action-btn">
+          <span class="quick-action-icon" id="muteIconContainer">
+              <!-- SVG will be injected here by script -->
+          </span>
+      </button>
+  </div>
+  <div id="result"></div>
+  <div id="errorMessage"></div>
+
+  <audio id="openSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3" preload="auto"></audio>
+  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+  <audio id="claimSound" src="https://assets.mixkit.co/sfx/preview/mixkit-video-game-treasure-2066.mp3" preload="auto"></audio>
+
+  <div id="mainMenuModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('mainMenuModal')">&times;</button>
+      <h2 data-lang-key="mainMenuTitle">Ana Menü</h2>
+      <div class="menu-options">
+        <button onclick="openModal('csPathModal')" data-lang-key="csPathBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-5h16V6H4v2z"/></svg></span>
+        </button>
+        <button onclick="openModal('dailyRewardModal')" id="dailyRewardsMenuBtn" data-lang-key="dailyRewardsBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3c0 .35.07.69.18 1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-2h4a1 1 0 0 1 1 1 1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm8 16H4V8h16v12z"/></svg></span>
+        </button>
+        <button onclick="openModal('inventoryModal')" data-lang-key="inventoryBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-3.18C16.3 4.24 14.36 3 12 3s-4.3 1.24-4.82 3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></span>
+        </button>
+        <button onclick="openModal('boostShopModal')" data-lang-key="boostShopBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.1.17H16.8l2.92-5.04-1.55-.89L16.8 11H8.53L4.27 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/></svg></span>
+        </button>
+        <button onclick="openModal('achievementsModal')" data-lang-key="achievementsBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+        </button>
+        <button onclick="openModal('autoSellModal')" data-lang-key="autoSellSettingsBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4zm-2-4h8v2H8z"/></svg></span>
+        </button>
+        <button onclick="openModal('autoOpenModal')" data-lang-key="autoOpenBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></span>
+        </button>
+        <button onclick="openModal('versionPatchesModal')" data-lang-key="versionPatchesBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span>
+        </button>
+        <button onclick="openModal('languageSelectModal')" data-lang-key="languageBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
+        </button>
+        <button onclick="resetGameAndConfirm()" data-lang-key="resetGameBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="inventoryModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('inventoryModal')">&times;</button>
+      <h2 data-lang-key="inventoryTitle">Envanterin</h2>
+      <div id="inventory-filters">
+        <select id="rarityFilter">
+          <option value="all" data-lang-key="allRarities">Tüm Nadirlikler</option>
+          <option value="common" data-lang-key="commonRarity">Sıradan</option>
+          <option value="rare" data-lang-key="rareRarity">Nadir</option>
+          <option value="epic" data-lang-key="epicRarity">Destansı</option>
+          <option value="legendary" data-lang-key="legendaryRarity">Efsanevi</option>
+          <option value="exotic" data-lang-key="exoticRarity">Egzotik</option>
+          <option value="ancient" data-lang-key="ancientRarity">Kadim</option>
+          <option value="immortal" data-lang-key="immortalRarity">Ölümsüz</option>
+        </select>
+        <select id="typeFilter">
+          <option value="all" data-lang-key="allTypes">Tüm Türler</option>
+          <option value="item" data-lang-key="itemType">Eşyalar</option>
+          <option value="boost" data-lang-key="boostType">Boostlar</option>
+        </select>
+        <button onclick="applyInventoryFilters()" data-lang-key="filterBtn">Filtrele</button>
+        <button onclick="sellAllFilteredItems()" data-lang-key="sellAllFilteredBtn">Filtrelenenleri Sat</button>
+      </div>
+      <div id="inventory">
+        <p id="no-items-message" data-lang-key="noItemsMessage">Envanterin boş. Bir kasa aç ve eşya kazan!</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="boostShopModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('boostShopModal')">&times;</button>
+      <h2 data-lang-key="boostShopTitle">Boost Mağazası</h2>
+      <div id="boosts-container">
+          <p id="no-boosts-message" style="display: none;" data-lang-key="noBoostsMessage">Şu anda satın alınabilecek boost yok.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="achievementsModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('achievementsModal')">&times;</button>
+      <h2 data-lang-key="achievementsTitle">Başarımlar</h2>
+      <div id="achievements-list">
+          <p id="no-achievements-message" style="display: none;" data-lang-key="noAchievementsMessage">Henüz başarım tanımlanmamış.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="itemDetailsModal" class="modal-overlay">
+    <div class="modal-content item-details-modal">
+        <button class="close-btn" onclick="closeModal('itemDetailsModal')">&times;</button>
+        <h3 id="modalItemName"></h3>
+        <div class="item-display">
+            <img id="modalItemImage" src="" alt="Eşya Resmi">
+            <div id="modalItemRarity" class="item-rarity-text"></div>
+            <div id="modalItemSellPrice" class="modal-message"></div>
+        </div>
+        <div class="modal-buttons">
+            <button id="sellItemBtn" class="sell-btn" data-lang-key="sellBtn">Sat</button>
+            <button id="favoriteItemBtn" class="favorite-btn" data-lang-key="favoriteBtn">Favorile ⭐</button>
+            <button class="close-btn-small" onclick="closeModal('itemDetailsModal')" data-lang-key="closeBtn">Kapat</button>
+        </div>
+        <div id="modalMessage" class="modal-message"></div>
+    </div>
+  </div>
+
+  <div id="versionPatchesModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('versionPatchesModal')">&times;</button>
+      <h2 data-lang-key="versionPatchesTitle">Sürüm Yamaları</h2>
+      <ul id="patches-list">
+      </ul>
+    </div>
+  </div>
+
+  <div id="autoSellModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('autoSellModal')">&times;</button>
+      <h2 data-lang-key="autoSellSettingsTitle">Otomatik Sat Ayarları</h2>
+      <p data-lang-key="autoSellDescription">Açtığın eşyaların, seçtiğin nadirlikteki olanları otomatik olarak satılacaktır.</p>
+      <div id="auto-sell-options">
+        <label><input type="checkbox" id="autoSellCommon"> <span data-lang-key="commonRarity">Sıradan</span></label>
+        <label><input type="checkbox" id="autoSellRare"> <span data-lang-key="rareRarity">Nadir</span></label>
+        <label><input type="checkbox" id="autoSellEpic"> <span data-lang-key="epicRarity">Destansı</span></label>
+        <label><input type="checkbox" id="autoSellLegendary"> <span data-lang-key="legendaryRarity">Efsanevi</span></label>
+        <label><input type="checkbox" id="autoSellExotic"> <span data-lang-key="exoticRarity">Egzotik</span></label>
+        <label><input type="checkbox" id="autoSellAncient"> <span data-lang-key="ancientRarity">Kadim</span></label>
+        <label><input type="checkbox" id="autoSellImmortal"> <span data-lang-key="immortalRarity">Ölümsüz</span></label>
+      </div>
+      <button id="saveAutoSellBtn" data-lang-key="saveSettingsBtn">Ayarları Kaydet</button>
+      <div id="auto-sell-status"></div>
+    </div>
+  </div>
+
+  <div id="autoOpenModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('autoOpenModal')">&times;</button>
+      <h2 data-lang-key="autoOpenTitle">Otomatik Kasa Aç</h2>
+      <p id="auto-open-info"></p>
+      <div id="auto-open-controls">
+        <button id="auto-open-start-btn" data-lang-key="startBtn">Başlat</button>
+        <button id="auto-open-stop-btn" disabled data-lang-key="stopBtn">Durdur</button>
+      </div>
+      <div id="auto-open-count" data-lang-key="casesOpened">Açılan Kasa: 0</div>
+    </div>
+  </div>
+
+  <div id="languageSelectModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('languageSelectModal')">&times;</button>
+        <h2 data-lang-key="languageOptionsTitle">Dil Seçenekleri</h2>
+        <div id="language-options">
+            <button data-lang-code="en" data-lang-key="englishLang">English</button>
+            <button data-lang-code="tr" data-lang-key="turkishLang">Türkçe</button>
+            <button data-lang-code="ar" data-lang-key="arabicLang">العربية</button>
+            <button data-lang-code="de" data-lang-key="germanLang">Deutsch</button>
+            <button data-lang-code="es" data-lang-key="spanishLang">Español</button>
+            <button data-lang-code="az" data-lang-key="azerbaijaniLang">Azərbaycanca</button>
+            <button data-lang-code="ru" data-lang-key="russianLang">Русский</button>
+            <button data-lang-code="ja" data-lang-key="japaneseLang">日本語</button>
+            <button data-lang-code="ko" data-lang-key="koreanLang">한국어</button>
+        </div>
+    </div>
+  </div>
+
+  <div id="dailyRewardModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('dailyRewardModal')">&times;</button>
+      <h2 data-lang-key="dailyRewardsTitle">Günlük Ödüller</h2>
+      <p data-lang-key="dailyRewardDesc">Her gün giriş yaparak özel bir ödül kazan!</p>
+      <div id="daily-rewards-grid"></div>
+      <p id="daily-reward-message" class="modal-message"></p>
+    </div>
+  </div>
+
+  <div id="csPathModal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('csPathModal')">&times;</button>
+        <h2 data-lang-key="csPathTitle">CS Yolu</h2>
+        <p data-lang-key="csPathDesc">Kasa açarak XP kazan ve yolda ilerleyerek ödülleri topla!</p>
+        <div id="cs-path-progress-bar-container">
+            <div id="cs-path-progress-bar"></div>
+        </div>
+        <div id="cs-path-xp-text">XP: 0 / 0</div>
+        <div id="cs-path-rewards-list"></div>
+    </div>
+  </div>
+
+  <div id="quick-access-buttons">
+    <button class="quick-access-btn" onclick="openModal('boostShopModal')">
+        <span class="quick-icon">
+            <svg viewBox="0 0 24 24"><path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.1.17H16.8l2.92-5.04-1.55-.89L16.8 11H8.53L4.27 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/></svg>
+        </span>
+    </button>
+    <button class="quick-access-btn" onclick="openModal('inventoryModal')">
+        <span class="quick-icon">
+             <svg viewBox="0 0 24 24"><path d="M20 6h-3.18C16.3 4.24 14.36 3 12 3s-4.3 1.24-4.82 3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+        </span>
+    </button>
+    <button class="quick-access-btn" onclick="openModal('achievementsModal')">
+        <span class="quick-icon">
+             <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </span>
+    </button>
+  </div>
+
+  <script>
+    // --- Data Definitions ---
+    const translations = {
+      en: { loading: "Loading...", menuBtn: "☰ Menu", gameTitle: "🎁 CS:GO Case Opening Simulator MK", balance: "Balance:", caseCost: "Case Cost:", playerXP: "XP:", openCaseBtn: "Open Case", mainMenuTitle: "Main Menu", inventoryBtn: "Inventory", boostShopBtn: "Boost Shop", achievementsBtn: "Achievements", autoSellSettingsBtn: "Auto-Sell Settings", autoOpenBtn: "Auto Open Case", versionPatchesBtn: "Version Patches", languageBtn: "Language Options", resetGameBtn: "Reset Game", dailyRewardsBtn: "Daily Rewards", csPathBtn: "CS Path", inventoryTitle: "Your Inventory", allRarities: "All Rarities", commonRarity: "Common", rareRarity: "Rare", epicRarity: "Epic", legendaryRarity: "Legendary", exoticRarity: "Exotic", ancientRarity: "Ancient", immortalRarity: "Immortal", allTypes: "All Types", itemType: "Items", boostType: "Boosts", filterBtn: "Filter", sellAllFilteredBtn: "Sell All Filtered", noItemsMessage: "Your inventory is empty. Open a case and win items!", boostShopTitle: "Boost Shop", noBoostsMessage: "No boosts available for purchase at the moment.", achievementsTitle: "Achievements", noAchievementsMessage: "No achievements defined yet.", sellBtn: "Sell", favoriteBtn: "Favorite ⭐", unfavoriteBtn: "Unfavorite ⭐", closeBtn: "Close", autoSellSettingsTitle: "Auto-Sell Settings", autoSellDescription: "Items of selected rarities will be sold automatically upon opening.", saveSettingsBtn: "Save Settings", autoOpenTitle: "Auto Open Case", startBtn: "Start", stopBtn: "Stop", casesOpened: "Cases Opened:", languageOptionsTitle: "Language Options", englishLang: "English", turkishLang: "Turkish", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Shop", inventoryQuickAccess: "Inventory", achievementsQuickAccess: "Achievements", youWon: "You Won:", notEnoughBalance: "Insufficient balance! You need {cost}$ to open a case.", autoSellStoppedBalance: "Insufficient balance! Auto case opening stopped.", itemSoldAuto: "(Auto Sold)", itemSold: "{item} sold for {price}$!", itemNotFound: "ERROR: Item not found in inventory!", boostCannotBeSold: "Boost items cannot be sold!", cannotSellFavorite: "You cannot sell a favorite item! Unfavorite it first.", boostAlreadyOwned: "You already own this boost!", boostPurchased: "{boostName} successfully purchased! Boost active!", achievementCompleted: "ACHIEVEMENT UNLOCKED", achievementRewardBalance: "{amount}$ earned!", achievementRewardBoost: "You won the {boostName} boost and it's active!", achievementBoostAlreadyOwned: "You already own the {boostName} boost.", unknownBoostReward: "Unknown boost reward!", autoSellStatusOff: "Auto-sell is off.", autoSellStatusOn: "Auto-sell rarities: {rarities}", autoOpenMinAchievements: "You need to complete at least 5 achievements for auto case opening. Currently {count} achievements completed.", autoOpenStopped: "Auto case opening stopped.", gameSavedError: "An error occurred while saving game data.", gameLoadedError: "An error occurred while loading saved game. A new game has started.", gameReset: "Game has been reset!", filteredItemsSold: "{count} items sold for {value}$!", noFilteredItemsToSell: "No filtered items to sell or all are favorite/boost.", confirmResetGame: "Are you sure you want to reset all game data? This action cannot be undone!", favoriteAdded: "{item} added to favorites!", favoriteRemoved: "You have removed {item} from your favorites!", itemLoadError: "Error: Item could not be loaded", dailyRewardsTitle: "Daily Rewards", dailyRewardDesc: "Log in every day to claim a special reward!", dailyRewardClaimed: "Reward for Day {day} claimed!", dailyRewardAlreadyClaimed: "Today's reward has already been claimed. Come back tomorrow!", dailyRewardNotReady: "Today's reward is not available yet.", day: "Day", claimBtn: "Claim", claimedBtn: "Claimed", csPathTitle: "CS Path", csPathDesc: "Earn XP by opening cases and claim rewards as you progress on the path!", tier: "Tier", xpUnit: "XP", reward: "Reward", csPathRewardClaimed: "Reward for Tier {tier} claimed!", dailyCaseLimitReached: "Daily case limit reached ({limit}). Come back tomorrow!", inProgressAchievement: "In Progress", sellLastBtn: "Sell Last Item", noSellableItem: "No sellable item in inventory!", mute: "Mute", unmute: "Unmute" },
+      tr: { loading: "Yükleniyor...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kasa Açma Simülasyonu MK", balance: "Bakiye:", caseCost: "Kasa Maliyeti:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Ana Menü", inventoryBtn: "Envanter", boostShopBtn: "Boost Mağazası", achievementsBtn: "Başarımlar", autoSellSettingsBtn: "Otomatik Sat Ayarları", autoOpenBtn: "Otomatik Kasa Aç", versionPatchesBtn: "Sürüm Yamaları", languageBtn: "Dil Seçenekleri", resetGameBtn: "Oyunu Sıfırla", dailyRewardsBtn: "Günlük Ödüller", csPathBtn: "CS Yolu", inventoryTitle: "Envanterin", allRarities: "Tüm Nadirlikler", commonRarity: "Sıradan", rareRarity: "Nadir", epicRarity: "Destansı", legendaryRarity: "Efsanevi", exoticRarity: "Egzotik", ancientRarity: "Kadim", immortalRarity: "Ölümsüz", allTypes: "Tüm Türler", itemType: "Eşyalar", boostType: "Boostlar", filterBtn: "Filtrele", sellAllFilteredBtn: "Filtrelenenleri Sat", noItemsMessage: "Envanterin boş. Bir kasa aç ve eşya kazan!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Şu anda satın alınabilecek boost yok.", achievementsTitle: "Başarımlar", noAchievementsMessage: "Henüz başarım tanımlanmamış.", sellBtn: "Sat", favoriteBtn: "Favorile ⭐", unfavoriteBtn: "Favoriden Çıkar ⭐", closeBtn: "Kapat", autoSellSettingsTitle: "Otomatik Sat Ayarları", autoSellDescription: "Açtığın eşyaların, seçtiğin nadirlikteki olanları otomatik olarak satılacaktır.", saveSettingsBtn: "Ayarları Kaydet", autoOpenTitle: "Otomatik Kasa Aç", startBtn: "Başlat", stopBtn: "Durdur", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçenekleri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Mağazası", inventoryQuickAccess: "Envanter", achievementsQuickAccess: "Başarımlar", youWon: "Kazandın:", notEnoughBalance: "Yetersiz bakiye! Kasa açmak için {cost}$'a ihtiyacın var.", autoSellStoppedBalance: "Yetersiz bakiye! Otomatik kasa açma durduruldu.", itemSoldAuto: "(Otomatik Satıldı)", itemSold: "{item} {price}$ karşılığında satıldı!", itemNotFound: "HATA: Eşya envanterde bulunamadı!", boostCannotBeSold: "Boost eşyaları satılamaz!", cannotSellFavorite: "Favori bir eşyayı satamazsın! Önce favorilerden çıkar.", boostAlreadyOwned: "Bu boost'a zaten sahipsin!", boostPurchased: "{boostName} başarıyla satın alındı! Boost aktif!", achievementCompleted: "BAŞARIM AÇILDI", achievementRewardBalance: "{amount}$ kazandın!", achievementRewardBoost: "{boostName} boost'unu kazandın ve aktif edildi!", achievementBoostAlreadyOwned: "{boostName} boost'una zaten sahipsin.", unknownBoostReward: "Bilinmeyen bir boost ödülü!", autoSellStatusOff: "Otomatik satma kapalı.", autoSellStatusOn: "Otomatik satılacak nadirlikler: {rarities}", autoOpenMinAchievements: "Otomatik kasa açma için en az 5 başarım tamamlamalısın! Şu an {count} başarım tamamlandı.", autoOpenStopped: "Otomatik kasa açma durduruldu.", gameSavedError: "Oyun verileri kaydedilirken bir hata oluştu.", gameLoadedError: "Kayıtlı oyun yüklenirken hata oluştu. Yeni oyun başlatıldı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} eşya {value}$ karşılığında satıldı!", noFilteredItemsToSell: "Satılacak filtrelenmiş eşya bulunamadı veya hepsi favori/boost.", confirmResetGame: "Tüm oyun verilerini sıfırlamak istediğine emin misin? Bu işlem geri alınamaz!", favoriteAdded: "{item} favorilere eklendi!", favoriteRemoved: "{item} favorilerden çıkarıldı!", itemLoadError: "Hata: Eşya yüklenemedi", dailyRewardsTitle: "Günlük Ödüller", dailyRewardDesc: "Her gün giriş yaparak özel bir ödül kazan!", dailyRewardClaimed: "{day}. Gün ödülü alındı!", dailyRewardAlreadyClaimed: "Bugünün ödülü zaten alındı. Yarın tekrar gel!", dailyRewardNotReady: "Bugünün ödülü henüz hazır değil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açarak XP kazan ve yolda ilerleyerek ödülleri topla!", tier: "Kademe", xpUnit: "XP", reward: "Ödül", csPathRewardClaimed: "{tier}. Kademe ödülü alındı!", dailyCaseLimitReached: "Günlük kasa açma limitine ({limit}) ulaşıldı. Yarın tekrar gel!", inProgressAchievement: "Devam Ediyor", sellLastBtn: "Son Eşyayı Sat", noSellableItem: "Envanterde satılabilir eşya yok!", mute: "Sesi Kapat", unmute: "Sesi Aç" },
+      ar: { loading: "جاري التحميل...", menuBtn: "☰ القائمة", gameTitle: "🎁 محاكي فتح الصناديق MK لـ CS:GO", balance: "الرصيد:", caseCost: "تكلفة الصندوق:", playerXP: "الخبرة:", openCaseBtn: "فتح الصندوق", mainMenuTitle: "القائمة الرئيسية", inventoryBtn: "المخزون", boostShopBtn: "متجر التعزيزات", achievementsBtn: "الإنجازات", autoSellSettingsBtn: "إعدادات البيع التلقائي", autoOpenBtn: "فتح تلقائي", versionPatchesBtn: "تحديثات الإصدار", languageBtn: "خيارات اللغة", resetGameBtn: "إعادة تعيين", dailyRewardsBtn: "المكافآت اليومية", csPathBtn: "مسار CS", inventoryTitle: "مخزونك", allRarities: "جميع الندرات", commonRarity: "عادي", rareRarity: "نادر", epicRarity: "ملحمي", legendaryRarity: "أسطوري", exoticRarity: "غريب", ancientRarity: "قديم", immortalRarity: "خالد", allTypes: "جميع الأنواع", itemType: "العناصر", boostType: "التعزيزات", filterBtn: "تصفية", sellAllFilteredBtn: "بيع المصفى", noItemsMessage: "مخزونك فارغ. افتح صندوقاً واكسب عناصر!", boostShopTitle: "متجر التعزيزات", noBoostsMessage: "لا توجد تعزيزات متاحة للشراء حالياً.", achievementsTitle: "الإنجازات", noAchievementsMessage: "لم يتم تعريف إنجازات بعد.", sellBtn: "بيع", favoriteBtn: "تفضيل ⭐", unfavoriteBtn: "إلغاء التفضيل ⭐", closeBtn: "إغلاق", autoSellSettingsTitle: "إعدادات البيع التلقائي", autoSellDescription: "سيتم بيع العناصر من الندرات المحددة تلقائياً عند فتحها.", saveSettingsBtn: "حفظ الإعدادات", autoOpenTitle: "فتح الصندوق تلقائياً", startBtn: "بدء", stopBtn: "إيقاف", casesOpened: "الصناديق المفتوحة:", languageOptionsTitle: "خيارات اللغة", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "متجر التعزيزات", inventoryQuickAccess: "المخزون", achievementsQuickAccess: "الإنجازات", youWon: "لقد ربحت:", notEnoughBalance: "رصيد غير كافٍ! تحتاج إلى {cost}$ لفتح صندوق.", autoSellStoppedBalance: "رصيد غير كافٍ! تم إيقاف الفتح التلقائي.", itemSoldAuto: "(تم البيع تلقائياً)", itemSold: "تم بيع {item} مقابل {price}$!", itemNotFound: "خطأ: العنصر غير موجود في المخزون!", boostCannotBeSold: "عناصر التعزيز لا يمكن بيعها!", cannotSellFavorite: "لا يمكنك بيع عنصر مفضل! قم بإزالته من المفضلة أولاً.", boostAlreadyOwned: "أنت تمتلك هذا التعزيز بالفعل!", boostPurchased: "تم شراء {boostName} بنجاح! التعزيز نشط!", achievementCompleted: "تم فتح الإنجاز", achievementRewardBalance: "ربحت {amount}$!", achievementRewardBoost: "لقد ربحت تعزيز {boostName} وتم تفعيله!", achievementBoostAlreadyOwned: "أنت تمتلك تعزيز {boostName} بالفعل.", unknownBoostReward: "مكافأة تعزيز غير معروفة!", autoSellStatusOff: "البيع التلقائي متوقف.", autoSellStatusOn: "ندرات البيع التلقائي: {rarities}", autoOpenMinAchievements: "تحتاج إلى إكمال 5 إنجازات على الأقل للفتح التلقائي. حالياً تم إكمال {count} إنجازات.", autoOpenStopped: "تم إيقاف الفتح التلقائي.", gameSavedError: "حدث خطأ أثناء حفظ بيانات اللعبة.", gameLoadedError: "حدث خطأ أثناء تحميل اللعبة. تم بدء لعبة جديدة.", gameReset: "تمت إعادة تعيين اللعبة!", filteredItemsSold: "تم بيع {count} عنصر مقابل {value}$!", noFilteredItemsToSell: "لا توجد عناصر مصفاة للبيع أو جميعها مفضلة/تعزيزات.", confirmResetGame: "هل أنت متأكد أنك تريد إعادة تعيين جميع بيانات اللعبة؟ لا يمكن التراجع عن هذا الإجراء!", favoriteAdded: "تمت إضافة {item} إلى المفضلة!", favoriteRemoved: "تمت إزالة {item} من المفضلة!", itemLoadError: "خطأ: لم يتم تحميل العنصر", dailyRewardsTitle: "المكافآت اليومية", dailyRewardDesc: "سجل الدخول كل يوم للحصول على مكافأة خاصة!", dailyRewardClaimed: "تم استلام مكافأة اليوم {day}!", dailyRewardAlreadyClaimed: "تم استلام مكافأة اليوم بالفعل. عد غدًا!", dailyRewardNotReady: "مكافأة اليوم غير متاحة بعد.", day: "يوم", claimBtn: "استلام", claimedBtn: "تم الاستلام", csPathTitle: "مسار CS", csPathDesc: "اكسب نقاط الخبرة عن طريق فتح الصناديق واحصل على المكافآت كلما تقدمت في المسار!", tier: "المستوى", xpUnit: "خبرة", reward: "المكافأة", csPathRewardClaimed: "تم استلام مكافأة المستوى {tier}!", dailyCaseLimitReached: "لقد وصلت إلى الحد الأقصى لفتح الصناديق اليومي ({limit}). عد غدًا!", inProgressAchievement: "قيد التقدم", sellLastBtn: "بيع آخر عنصر", noSellableItem: "لا يوجد عنصر قابل للبيع في المخزون!", mute: "كتم الصوت", unmute: "إلغاء كتم الصوت" },
+      de: { loading: "Wird geladen...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kistenöffnungs-Simulator MK", balance: "Guthaben:", caseCost: "Kistenkosten:", playerXP: "EP:", openCaseBtn: "Kiste öffnen", mainMenuTitle: "Hauptmenü", inventoryBtn: "Inventar", boostShopBtn: "Boost-Shop", achievementsBtn: "Erfolge", autoSellSettingsBtn: "Auto-Verkauf", autoOpenBtn: "Auto-Öffnen", versionPatchesBtn: "Versionen", languageBtn: "Sprache", resetGameBtn: "Zurücksetzen", dailyRewardsBtn: "Tägliche Belohnungen", csPathBtn: "CS-Pfad", inventoryTitle: "Dein Inventar", allRarities: "Alle Seltenheiten", commonRarity: "Gewöhnlich", rareRarity: "Selten", epicRarity: "Episch", legendaryRarity: "Legendär", exoticRarity: "Exotisch", ancientRarity: "Antik", immortalRarity: "Unsterblich", allTypes: "Alle Typen", itemType: "Gegenstände", boostType: "Boosts", filterBtn: "Filtern", sellAllFilteredBtn: "Gefilterte verkaufen", noItemsMessage: "Dein Inventar ist leer. Öffne eine Kiste und gewinne Gegenstände!", boostShopTitle: "Boost-Shop", noBoostsMessage: "Derzeit sind keine Boosts zum Kauf verfügbar.", achievementsTitle: "Erfolge", noAchievementsMessage: "Noch keine Erfolge definiert.", sellBtn: "Verkaufen", favoriteBtn: "Favorisieren ⭐", unfavoriteBtn: "Entfavorisieren ⭐", closeBtn: "Schließen", autoSellSettingsTitle: "Auto-Verkauf Einstellungen", autoSellDescription: "Gegenstände ausgewählter Seltenheiten werden beim Öffnen automatisch verkauft.", saveSettingsBtn: "Speichern", autoOpenTitle: "Auto-Kisten öffnen", startBtn: "Starten", stopBtn: "Stoppen", casesOpened: "Geöffnete Kisten:", languageOptionsTitle: "Sprachoptionen", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost-Shop", inventoryQuickAccess: "Inventar", achievementsQuickAccess: "Erfolge", youWon: "Du hast gewonnen:", notEnoughBalance: "Unzureichendes Guthaben! Du benötigst {cost}$ zum Öffnen.", autoSellStoppedBalance: "Unzureichendes Guthaben! Auto-Öffnen gestoppt.", itemSoldAuto: "(Automatisch verkauft)", itemSold: "{item} für {price}$ verkauft!", itemNotFound: "FEHLER: Gegenstand nicht im Inventar gefunden!", boostCannotBeSold: "Boost-Gegenstände können nicht verkauft werden!", cannotSellFavorite: "Du kannst einen Favoriten nicht verkaufen! Entferne ihn zuerst.", boostAlreadyOwned: "Du besitzt diesen Boost bereits!", boostPurchased: "{boostName} erfolgreich gekauft! Boost aktiv!", achievementCompleted: "ERFOLG FREIGESCHALTET", achievementRewardBalance: "{amount}$ verdient!", achievementRewardBoost: "Du hast den {boostName} Boost gewonnen und er ist aktiv!", achievementBoostAlreadyOwned: "Du besitzt den {boostName} Boost bereits.", unknownBoostReward: "Unbekannte Boost-Belohnung!", autoSellStatusOff: "Auto-Verkauf ist aus.", autoSellStatusOn: "Auto-Verkauf für: {rarities}", autoOpenMinAchievements: "Du musst 5 Erfolge für das Auto-Öffnen abschließen. Derzeit {count} abgeschlossen.", autoOpenStopped: "Auto-Öffnen gestoppt.", gameSavedError: "Fehler beim Speichern der Spieldaten.", gameLoadedError: "Fehler beim Laden des Spielstands. Neues Spiel gestartet.", gameReset: "Spiel wurde zurückgesetzt!", filteredItemsSold: "{count} Gegenstände für {value}$ verkauft!", noFilteredItemsToSell: "Keine gefilterten Gegenstände zum Verkauf.", confirmResetGame: "Möchtest du wirklich alle Spieldaten zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden!", favoriteAdded: "{item} zu Favoriten hinzugefügt!", favoriteRemoved: "{item} aus Favoriten entfernt!", itemLoadError: "Fehler: Gegenstand konnte nicht geladen werden", dailyRewardsTitle: "Tägliche Belohnungen", dailyRewardDesc: "Logge dich jeden Tag ein, um eine besondere Belohnung zu erhalten!", dailyRewardClaimed: "Belohnung für Tag {day} erhalten!", dailyRewardAlreadyClaimed: "Die heutige Belohnung wurde bereits abgeholt. Komm morgen wieder!", dailyRewardNotReady: "Die heutige Belohnung ist noch nicht verfügbar.", day: "Tag", claimBtn: "Abholen", claimedBtn: "Abgeholt", csPathTitle: "CS-Pfad", csPathDesc: "Sammle EP durch das Öffnen von Kisten und schalte Belohnungen auf dem Pfad frei!", tier: "Stufe", xpUnit: "EP", reward: "Belohnung", csPathRewardClaimed: "Belohnung für Stufe {tier} erhalten!", dailyCaseLimitReached: "Tägliches Kistenlimit ({limit}) erreicht. Komm morgen wieder!", inProgressAchievement: "In Arbeit", sellLastBtn: "Letztes Item Verkaufen", noSellableItem: "Kein verkaufbares Item im Inventar!", mute: "Stumm", unmute: "Ton an" },
+      es: { loading: "Cargando...", menuBtn: "☰ Menú", gameTitle: "🎁 Simulador de Apertura de Cajas CS:GO MK", balance: "Saldo:", caseCost: "Costo:", playerXP: "EXP:", openCaseBtn: "Abrir Caja", mainMenuTitle: "Menú Principal", inventoryBtn: "Inventario", boostShopBtn: "Tienda", achievementsBtn: "Logros", autoSellSettingsBtn: "Venta Auto", autoOpenBtn: "Apertura Auto", versionPatchesBtn: "Versiones", languageBtn: "Idioma", resetGameBtn: "Reiniciar", dailyRewardsBtn: "Recompensas Diarias", csPathBtn: "Camino CS", inventoryTitle: "Tu Inventario", allRarities: "Todas las Rarezas", commonRarity: "Común", rareRarity: "Raro", epicRarity: "Épico", legendaryRarity: "Legendario", exoticRarity: "Exótico", ancientRarity: "Antiguo", immortalRarity: "Inmortal", allTypes: "Todos los Tipos", itemType: "Artículos", boostType: "Boosts", filterBtn: "Filtrar", sellAllFilteredBtn: "Vender Filtrados", noItemsMessage: "Tu inventario está vacío. ¡Abre una caja y gana artículos!", boostShopTitle: "Tienda de Boosts", noBoostsMessage: "No hay boosts disponibles para comprar.", achievementsTitle: "Logros", noAchievementsMessage: "Aún no se han definido logros.", sellBtn: "Vender", favoriteBtn: "Favorito ⭐", unfavoriteBtn: "No Favorito ⭐", closeBtn: "Cerrar", autoSellSettingsTitle: "Configuración de Venta Automática", autoSellDescription: "Los artículos de rarezas seleccionadas se venderán automáticamente al abrirlos.", saveSettingsBtn: "Guardar", autoOpenTitle: "Abrir Caja Automáticamente", startBtn: "Iniciar", stopBtn: "Detener", casesOpened: "Cajas Abiertas:", languageOptionsTitle: "Opciones de Idioma", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Tienda de Boosts", inventoryQuickAccess: "Inventario", achievementsQuickAccess: "Logros", youWon: "Ganaste:", notEnoughBalance: "¡Saldo insuficiente! Necesitas {cost}$ para abrir una caja.", autoSellStoppedBalance: "¡Saldo insuficiente! Apertura automática detenida.", itemSoldAuto: "(Vendido Automáticamente)", itemSold: "¡{item} vendido por {price}$!", itemNotFound: "ERROR: ¡Artículo no encontrado en el inventario!", boostCannotBeSold: "¡Los boosts no se pueden vender!", cannotSellFavorite: "¡No puedes vender un artículo favorito! Quítalo de favoritos primero.", boostAlreadyOwned: "¡Ya posees este boost!", boostPurchased: "¡{boostName} comprado! ¡Boost activo!", achievementCompleted: "¡LOGRO DESBLOQUEADO!", achievementRewardBalance: "¡{amount}$ ganados!", achievementRewardBoost: "¡Ganaste el boost {boostName} y está activo!", achievementBoostAlreadyOwned: "Ya posees el boost {boostName}.", unknownBoostReward: "¡Recompensa de boost desconocida!", autoSellStatusOff: "Venta automática desactivada.", autoSellStatusOn: "Venta automática para: {rarities}", autoOpenMinAchievements: "Necesitas 5 logros para la apertura automática. Tienes {count}.", autoOpenStopped: "Apertura automática detenida.", gameSavedError: "Error al guardar los datos del juego.", gameLoadedError: "Error al cargar el juego. Se inició un nuevo juego.", gameReset: "¡Juego reiniciado!", filteredItemsSold: "¡{count} artículos vendidos por {value}$!", noFilteredItemsToSell: "No hay artículos filtrados para vender.", confirmResetGame: "¿Seguro que quieres reiniciar todos los datos del juego? Esta acción no se puede deshacer.", favoriteAdded: "¡{item} añadido a favoritos!", favoriteRemoved: "¡{item} eliminado de favoritos!", itemLoadError: "Error: No se pudo cargar el artículo", dailyRewardsTitle: "Recompensas Diarias", dailyRewardDesc: "¡Inicia sesión cada día para reclamar una recompensa especial!", dailyRewardClaimed: "¡Recompensa del día {day} reclamada!", dailyRewardAlreadyClaimed: "La recompensa de hoy ya ha sido reclamada. ¡Vuelve mañana!", dailyRewardNotReady: "La recompensa de hoy aún no está disponible.", day: "Día", claimBtn: "Reclamar", claimedBtn: "Reclamado", csPathTitle: "Camino CS", csPathDesc: "¡Gana EXP abriendo cajas y reclama recompensas a medida que avanzas en el camino!", tier: "Nivel", xpUnit: "EXP", reward: "Recompensa", csPathRewardClaimed: "¡Recompensa del Nivel {tier} reclamada!", dailyCaseLimitReached: "Límite diario de cajas ({limit}) alcanzado. ¡Vuelve mañana!", inProgressAchievement: "En Progreso", sellLastBtn: "Vender Último Objeto", noSellableItem: "¡No hay objetos vendibles en el inventario!", mute: "Silenciar", unmute: "Activar sonido" },
+      az: { loading: "Yüklənir...", menuBtn: "☰ Menyu", gameTitle: "🎁 CS:GO Kasa Açma Simulyatoru MK", balance: "Balans:", caseCost: "Kasa Dəyəri:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Əsas Menyu", inventoryBtn: "İnventar", boostShopBtn: "Boost Mağazası", achievementsBtn: "Nailiyyətlər", autoSellSettingsBtn: "Avto-Satış", autoOpenBtn: "Avto-Aç", versionPatchesBtn: "Versiyalar", languageBtn: "Dil", resetGameBtn: "Sıfırla", dailyRewardsBtn: "Gündəlik Mükafatlar", csPathBtn: "CS Yolu", inventoryTitle: "Sizin İnventarınız", allRarities: "Bütün Nadirliklər", commonRarity: "Adi", rareRarity: "Nadir", epicRarity: "Epik", legendaryRarity: "Əfsanəvi", exoticRarity: "Ekzotik", ancientRarity: "Qədim", immortalRarity: "Ölümsüz", allTypes: "Bütün Növlər", itemType: "Əşyalar", boostType: "Boostlar", filterBtn: "Filtrlə", sellAllFilteredBtn: "Filtrlənənləri Sat", noItemsMessage: "İnventarınız boşdur. Kasa açın və əşyalar qazanın!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Hal-hazırda satın alına biləcək boost yoxdur.", achievementsTitle: "Nailiyyətlər", noAchievementsMessage: "Hələ nailiyyət təyin edilməyib.", sellBtn: "Sat", favoriteBtn: "Favorit et ⭐", unfavoriteBtn: "Favoritdən çıxar ⭐", closeBtn: "Bağla", autoSellSettingsTitle: "Avtomatik Satış Ayarları", autoSellDescription: "Seçilmiş nadirlikdəki əşyalar açıldıqda avtomatik satılacaq.", saveSettingsBtn: "Yadda Saxla", autoOpenTitle: "Avtomatik Kasa Aç", startBtn: "Başla", stopBtn: "Dayandır", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçimləri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Mağazası", inventoryQuickAccess: "İnventar", achievementsQuickAccess: "Nailiyyətlər", youWon: "Siz Qazandınız:", notEnoughBalance: "Balans yetərsizdir! Kasa açmaq üçün {cost}$ lazımdır.", autoSellStoppedBalance: "Balans yetərsizdir! Avtomatik açılış dayandırıldı.", itemSoldAuto: "(Avtomatik Satıldı)", itemSold: "{item} {price}$ qarşılığında satıldı!", itemNotFound: "XƏTA: Əşya inventarda tapılmadı!", boostCannotBeSold: "Boost əşyaları satıla bilməz!", cannotSellFavorite: "Favorit əşyanı sata bilməzsən! Əvvəlcə favoritlərdən çıxar.", boostAlreadyOwned: "Bu boosta artıq sahibsiniz!", boostPurchased: "{boostName} uğurla alındı! Boost aktivdir!", achievementCompleted: "NAİLİYYƏT AÇILDI", achievementRewardBalance: "{amount}$ qazandın!", achievementRewardBoost: "{boostName} boostunu qazandın və aktiv edildi!", achievementBoostAlreadyOwned: "{boostName} boostuna artıq sahibsiniz.", unknownBoostReward: "Naməlum boost mükafatı!", autoSellStatusOff: "Avtomatik satış bağlıdır.", autoSellStatusOn: "Avtomatik satılacaq nadirliklər: {rarities}", autoOpenMinAchievements: "Avtomatik açmaq üçün ən az 5 nailiyyət tamamlamalısan! Hazırda {count} tamamlanıb.", autoOpenStopped: "Avtomatik açılış dayandırıldı.", gameSavedError: "Oyun məlumatları saxlanarkən xəta baş verdi.", gameLoadedError: "Oyun yüklənərkən xəta baş verdi. Yeni oyun başladı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} əşya {value}$ qarşılığında satıldı!", noFilteredItemsToSell: "Satılacaq filtrlənmiş əşya tapılmadı.", confirmResetGame: "Bütün oyun məlumatlarını sıfırlamaq istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz!", favoriteAdded: "{item} favoritlərə əlavə edildi!", favoriteRemoved: "{item} favoritlərdən çıxarıldı!", itemLoadError: "Xəta: Əşya yüklənə bilmədi", dailyRewardsTitle: "Gündəlik Mükafatlar", dailyRewardDesc: "Xüsusi bir mükafat qazanmaq üçün hər gün daxil olun!", dailyRewardClaimed: "{day}. Gün mükafatı alındı!", dailyRewardAlreadyClaimed: "Bugünkü mükafat artıq alınıb. Sabah yenidən gəlin!", dailyRewardNotReady: "Bugünkü mükafat hələ hazır deyil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açaraq XP qazanın və yolda irəliləyərək mükafatları toplayın!", tier: "Səviyyə", xpUnit: "XP", reward: "Mükafat", csPathRewardClaimed: "{tier}. Səviyyə mükafatı alındı!", dailyCaseLimitReached: "Gündəlik kasa açma limitinə ({limit}) çatdınız. Sabah yenidən gəlin!", inProgressAchievement: "Davam edir", sellLastBtn: "Son Əşyanı Sat", noSellableItem: "İnventarda satıla bilən əşya yoxdur!", mute: "Səsi Bağla", unmute: "Səsi Aç" },
+      ru: { loading: "Загрузка...", menuBtn: "☰ Меню", gameTitle: "🎁 Симулятор открытия кейсов CS:GO MK", balance: "Баланс:", caseCost: "Цена кейса:", playerXP: "Опыт:", openCaseBtn: "Открыть кейс", mainMenuTitle: "Главное меню", inventoryBtn: "Инвентарь", boostShopBtn: "Магазин бустов", achievementsBtn: "Достижения", autoSellSettingsBtn: "Авто-продажа", autoOpenBtn: "Авто-открытие", versionPatchesBtn: "Версии", languageBtn: "Язык", resetGameBtn: "Сбросить игру", dailyRewardsBtn: "Ежедневные награды", csPathBtn: "Путь CS", inventoryTitle: "Ваш инвентарь", allRarities: "Все редкости", commonRarity: "Обычный", rareRarity: "Редкий", epicRarity: "Эпический", legendaryRarity: "Легендарный", exoticRarity: "Экзотический", ancientRarity: "Древний", immortalRarity: "Бессмертный", allTypes: "Все типы", itemType: "Предметы", boostType: "Бусты", filterBtn: "Фильтр", sellAllFilteredBtn: "Продать отфильтрованное", noItemsMessage: "Ваш инвентарь пуст. Откройте кейс и выиграйте предметы!", boostShopTitle: "Магазин бустов", noBoostsMessage: "В данный момент нет доступных для покупки бустов.", achievementsTitle: "Достижения", noAchievementsMessage: "Достижения еще не определены.", sellBtn: "Продать", favoriteBtn: "В избранное ⭐", unfavoriteBtn: "Убрать из избранного ⭐", closeBtn: "Закрыть", autoSellSettingsTitle: "Настройки авто-продажи", autoSellDescription: "Предметы выбранных редкостей будут продаваться автоматически при открытии.", saveSettingsBtn: "Сохранить", autoOpenTitle: "Авто-открытие кейсов", startBtn: "Начать", stopBtn: "Остановить", casesOpened: "Открыто кейсов:", languageOptionsTitle: "Выбор языка", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Магазин бустов", inventoryQuickAccess: "Инвентарь", achievementsQuickAccess: "Достижения", youWon: "Вы выиграли:", notEnoughBalance: "Недостаточно средств! Вам нужно {cost}$ для открытия кейса.", autoSellStoppedBalance: "Недостаточно средств! Авто-открытие остановлено.", itemSoldAuto: "(Авто-продажа)", itemSold: "{item} продан за {price}$!", itemNotFound: "ОШИБКА: Предмет не найден в инвентаре!", boostCannotBeSold: "Бусты нельзя продать!", cannotSellFavorite: "Нельзя продать избранный предмет! Сначала уберите его из избранного.", boostAlreadyOwned: "У вас уже есть этот буст!", boostPurchased: "{boostName} успешно куплен! Буст активен!", achievementCompleted: "ДОСТИЖЕНИЕ ОТКРЫТО", achievementRewardBalance: "Заработано {amount}$!", achievementRewardBoost: "Вы выиграли буст {boostName}, и он активен!", achievementBoostAlreadyOwned: "У вас уже есть буст {boostName}.", unknownBoostReward: "Неизвестная награда-буст!", autoSellStatusOff: "Авто-продажа выключена.", autoSellStatusOn: "Авто-продажа для: {rarities}", autoOpenMinAchievements: "Вам нужно выполнить 5 достижений для авто-открытия. Сейчас выполнено {count}.", autoOpenStopped: "Авто-открытие остановлено.", gameSavedError: "Произошла ошибка при сохранении данных игры.", gameLoadedError: "Произошла ошибка при загрузке игры. Начата новая игра.", gameReset: "Игра сброшена!", filteredItemsSold: "{count} предметов продано за {value}$!", noFilteredItemsToSell: "Нет отфильтрованных предметов для продажи.", confirmResetGame: "Вы уверены, что хотите сбросить все данные игры? Это действие необратимо!", favoriteAdded: "{item} добавлен в избранное!", favoriteRemoved: "{item} убран из избранного!", itemLoadError: "Ошибка: Предмет не может быть загружен", dailyRewardsTitle: "Ежедневные награды", dailyRewardDesc: "Заходите каждый день, чтобы получить особую награду!", dailyRewardClaimed: "Награда за день {day} получена!", dailyRewardAlreadyClaimed: "Сегодняшняя награда уже получена. Возвращайтесь завтра!", dailyRewardNotReady: "Сегодняшняя награда еще не доступна.", day: "День", claimBtn: "Забрать", claimedBtn: "Получено", csPathTitle: "Путь CS", csPathDesc: "Зарабатывайте опыт, открывая кейсы, и получайте награды за продвижение по пути!", tier: "Уровень", xpUnit: "ОП", reward: "Награда", csPathRewardClaimed: "Награда за уровень {tier} получена!", dailyCaseLimitReached: "Достигнут дневной лимит открытия кейсов ({limit}). Возвращайтесь завтра!", inProgressAchievement: "В процессе", sellLastBtn: "Продать последний предмет", noSellableItem: "Нет продаваемых предметов в инвентаре!", mute: "Выкл. звук", unmute: "Вкл. звук" },
+      ja: { loading: "ロード中...", menuBtn: "☰ メニュー", gameTitle: "🎁 CS:GOケース開封シミュレーター MK", balance: "残高:", caseCost: "ケース費用:", playerXP: "経験値:", openCaseBtn: "ケースを開ける", mainMenuTitle: "メインメニュー", inventoryBtn: "インベントリ", boostShopBtn: "ブーストショップ", achievementsBtn: "実績", autoSellSettingsBtn: "自動売却設定", autoOpenBtn: "自動で開ける", versionPatchesBtn: "バージョンパッチ", languageBtn: "言語オプション", resetGameBtn: "ゲームをリセット", dailyRewardsBtn: "デイリー報酬", csPathBtn: "CSパス", inventoryTitle: "あなたのインベントリ", allRarities: "すべてのレア度", commonRarity: "コモン", rareRarity: "レア", epicRarity: "エピック", legendaryRarity: "レジェンダリー", exoticRarity: "エキゾチック", ancientRarity: "エンシェント", immortalRarity: "イモータル", allTypes: "すべてのタイプ", itemType: "アイテム", boostType: "ブースト", filterBtn: "フィルター", sellAllFilteredBtn: "フィルター済みを全て売却", noItemsMessage: "インベントリは空です。ケースを開けてアイテムを獲得しましょう！", boostShopTitle: "ブーストショップ", noBoostsMessage: "現在購入可能なブーストはありません。", achievementsTitle: "実績", noAchievementsMessage: "まだ実績が定義されていません。", sellBtn: "売却", favoriteBtn: "お気に入り ⭐", unfavoriteBtn: "お気に入り解除 ⭐", closeBtn: "閉じる", autoSellSettingsTitle: "自動売却設定", autoSellDescription: "選択したレア度の開封済みアイテムは自動的に売却されます。", saveSettingsBtn: "設定を保存", autoOpenTitle: "ケースを自動で開ける", startBtn: "開始", stopBtn: "停止", casesOpened: "開封済みケース:", languageOptionsTitle: "言語オプション", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "ブーストショップ", inventoryQuickAccess: "インベントリ", achievementsQuickAccess: "実績", youWon: "獲得:", notEnoughBalance: "残高が不足しています！ケースを開けるには{cost}$必要です。", autoSellStoppedBalance: "残高が不足しています！自動ケース開封が停止しました。", itemSoldAuto: "(自動売却済み)", itemSold: "{item}を{price}$で売却しました！", itemNotFound: "エラー：インベントリにアイテムが見つかりません！", boostCannotBeSold: "ブーストアイテムは売却できません！", cannotSellFavorite: "お気に入りのアイテムは売却できません！まずはお気に入りから外してください。", boostAlreadyOwned: "このブーストは既に所有しています！", boostPurchased: "{boostName}を正常に購入しました！ブーストが有効です！", achievementCompleted: "実績をアンロック", achievementRewardBalance: "{amount}$獲得！", achievementRewardBoost: "{boostName}ブーストを獲得し、有効化されました！", achievementBoostAlreadyOwned: "{boostName}ブーストは既に所有しています。", unknownBoostReward: "不明なブースト報酬！", autoSellStatusOff: "自動売却はオフです。", autoSellStatusOn: "自動売却レア度: {rarities}", autoOpenMinAchievements: "自動ケース開封には最低5つの実績を達成する必要があります。現在{count}個達成済みです。", autoOpenStopped: "自動ケース開封が停止しました。", gameSavedError: "ゲームデータの保存中にエラーが発生しました。", gameLoadedError: "保存されたゲームの読み込み中にエラーが発生しました。新しいゲームが開始されました。", gameReset: "ゲームがリセットされました！", filteredItemsSold: "{count}個のアイテムを{value}$で売却しました！", noFilteredItemsToSell: "売却対象のフィルター済みアイテムがありません。", confirmResetGame: "すべてのゲームデータをリセットしてもよろしいですか？この操作は元に戻せません！", favoriteAdded: "{item}をお気に入りに追加しました！", favoriteRemoved: "{item}をお気に入りから削除しました！", itemLoadError: "エラー：アイテムを読み込めませんでした", dailyRewardsTitle: "デイリー報酬", dailyRewardDesc: "毎日ログインして特別な報酬を受け取りましょう！", dailyRewardClaimed: "{day}日目の報酬を受け取りました！", dailyRewardAlreadyClaimed: "今日の報酬は既に受け取っています。また明日お越しください！", dailyRewardNotReady: "今日の報酬はまだ利用できません。", day: "日目", claimBtn: "受け取る", claimedBtn: "受取済", csPathTitle: "CSパス", csPathDesc: "ケースを開けて経験値を稼ぎ、パスを進めて報酬を獲得しましょう！", tier: "ティア", xpUnit: "XP", reward: "報酬", csPathRewardClaimed: "ティア{tier}の報酬を受け取りました！", dailyCaseLimitReached: "1日のケース開封上限（{limit}）に達しました。また明日お越しください！", inProgressAchievement: "進行中", sellLastBtn: "最後のアイテムを売る", noSellableItem: "売れるアイテムがありません!", mute: "ミュート", unmute: "ミュート解除" },
+      ko: { loading: "로딩 중...", menuBtn: "☰ 메뉴", gameTitle: "🎁 CS:GO 케이스 오프닝 시뮬레이터 MK", balance: "잔액:", caseCost: "케이스 비용:", playerXP: "경험치:", openCaseBtn: "케이스 열기", mainMenuTitle: "메인 메뉴", inventoryBtn: "인벤토리", boostShopBtn: "부스트 상점", achievementsBtn: "업적", autoSellSettingsBtn: "자동 판매 설정", autoOpenBtn: "자동 열기", versionPatchesBtn: "버전 패치", languageBtn: "언어 옵션", resetGameBtn: "게임 초기화", dailyRewardsBtn: "일일 보상", csPathBtn: "CS 패스", inventoryTitle: "나의 인벤토리", allRarities: "모든 희귀도", commonRarity: "일반", rareRarity: "희귀", epicRarity: "에픽", legendaryRarity: "전설", exoticRarity: "이국적", ancientRarity: "고대", immortalRarity: "불멸", allTypes: "모든 종류", itemType: "아이템", boostType: "부스트", filterBtn: "필터", sellAllFilteredBtn: "필터된 항목 모두 판매", noItemsMessage: "인벤토리가 비어 있습니다. 케이스를 열어 아이템을 획득하세요!", boostShopTitle: "부스트 상점", noBoostsMessage: "현재 구매 가능한 부스트가 없습니다.", achievementsTitle: "업적", noAchievementsMessage: "아직 정의된 업적이 없습니다。", sellBtn: "판매", favoriteBtn: "즐겨찾기 ⭐", unfavoriteBtn: "즐겨찾기 해제 ⭐", closeBtn: "닫기", autoSellSettingsTitle: "자동 판매 설정", autoSellDescription: "선택된 희귀도의 아이템은 개봉 시 자동으로 판매됩니다。", saveSettingsBtn: "설정 저장", autoOpenTitle: "자동 케이스 열기", startBtn: "시작", stopBtn: "정지", casesOpened: "열린 케이스:", languageOptionsTitle: "언어 옵션", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "부스트 상점", inventoryQuickAccess: "인벤토리", achievementsQuickAccess: "업적", youWon: "획득:", notEnoughBalance: "잔액이 부족합니다! 케이스를 열려면 {cost}$가 필요합니다.", autoSellStoppedBalance: "잔액 부족! 자동 케이스 열기가 중지되었습니다.", itemSoldAuto: "(자동 판매됨)", itemSold: "{item}을(를) {price}$에 판매했습니다!", itemNotFound: "오류: 인벤토리에서 아이템을 찾을 수 없습니다!", boostCannotBeSold: "부스트 아이템은 판매할 수 없습니다!", cannotSellFavorite: "즐겨찾기한 아이템은 판매할 수 없습니다! 먼저 즐겨찾기에서 해제하세요.", boostAlreadyOwned: "이미 이 부스트를 소유하고 있습니다!", boostPurchased: "{boostName}을(를) 성공적으로 구매했습니다! 부스트 활성화!", achievementCompleted: "업적 달성", achievementRewardBalance: "{amount}$ 획득!", achievementRewardBoost: "{boostName} 부스트를 획득하여 활성화되었습니다!", achievementBoostAlreadyOwned: "이미 {boostName} 부스트를 소유하고 있습니다.", unknownBoostReward: "알 수 없는 부스트 보상!", autoSellStatusOff: "자동 판매가 꺼져 있습니다.", autoSellStatusOn: "자동 판매 희귀도: {rarities}", autoOpenMinAchievements: "자동 케이스 열기를 위해서는 최소 5개의 업적을 달성해야 합니다. 현재 {count}개 달성했습니다.", autoOpenStopped: "자동 케이스 열기가 중지되었습니다.", gameSavedError: "게임 데이터 저장 중 오류가 발생했습니다.", gameLoadedError: "저장된 게임을 불러오는 중 오류가 발생했습니다. 새 게임을 시작합니다.", gameReset: "게임이 초기화되었습니다!", filteredItemsSold: "{count}개의 아이템을 {value}$에 판매했습니다!", noFilteredItemsToSell: "판매할 필터된 아이템이 없습니다.", confirmResetGame: "모든 게임 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다!", favoriteAdded: "{item}을(를) 즐겨찾기에 추가했습니다!", favoriteRemoved: "{item}을(를) 즐겨찾기에서 제거했습니다!", itemLoadError: "오류: 아이템을 로드할 수 없습니다", dailyRewardsTitle: "일일 보상", dailyRewardDesc: "매일 로그인하여 특별한 보상을 받으세요!", dailyRewardClaimed: "{day}일차 보상을 받았습니다!", dailyRewardAlreadyClaimed: "오늘의 보상은 이미 받았습니다. 내일 다시 오세요!", dailyRewardNotReady: "오늘의 보상은 아직 받을 수 없습니다.", day: "일차", claimBtn: "받기", claimedBtn: "받음", csPathTitle: "CS 패스", csPathDesc: "케이스를 열어 경험치를 얻고 길을 따라 보상을 받으세요!", tier: "티어", xpUnit: "XP", reward: "보상", csPathRewardClaimed: "티어 {tier} 보상을 받았습니다!", dailyCaseLimitReached: "일일 케이스 열기 한도({limit})에 도달했습니다. 내일 다시 오세요!", inProgressAchievement: "진행 중", sellLastBtn: "마지막 아이템 판매", noSellableItem: "판매 가능한 아이템이 없습니다!", mute: "음소거", unmute: "음소거 해제" },
+    };
+
+    const patchNotesData = [
+      { version: "V1.8.1", text: { en: "Replaced all emojis with SVG icons for a cleaner interface. Fixed a bug where patch notes were not displaying.", tr: "Daha temiz bir arayüz için tüm emojiler SVG ikonlarla değiştirildi. Yama notlarının görüntülenmemesine neden olan bir hata düzeltildi."}},
+      { version: "V1.8.0", text: { en: "Added a stylish achievement toast notification, utility buttons (Sell Last, Mute), and new achievements for long-term goals.", tr: "Şık bir başarım bildirimi, yardımcı butonlar (Son Eşyayı Sat, Sesi Kapat) ve uzun vadeli hedefler için yeni başarımlar eklendi."} },
+      { version: "V1.7.0", text: { en: "Major update! Daily Rewards and CS Path progression systems added. Three new languages (Russian, Japanese, Korean) and a daily case opening limit implemented.", tr: "Büyük güncelleme! Günlük Ödüller ve CS Yolu ilerleme sistemleri eklendi. Üç yeni dil (Rusça, Japonca, Korece) ve günlük kasa açma limiti getirildi."} },
+    ];
+    
+    const itemsData = [
+      { id: "item_0", name: { en: "Common Knife", tr: "Sıradan Bıçak", ru:"Обычный нож", ja:"コモンナイフ", ko:"일반 칼"}, rarity: "common", img: "https://via.placeholder.com/100/666666/FFFFFF?text=CB" },
+      { id: "item_1", name: { en: "Rare Sword", tr: "Nadir Kılıç", ru:"Редкий меч", ja:"レアソード", ko:"희귀한 검"}, rarity: "rare", img: "https://via.placeholder.com/100/4287f5/FFFFFF?text=RK" },
+      { id: "item_2", name: { en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi", ru:"Эпический коготь дракона", ja:"エピックドラゴンクロー", ko:"에픽 드래곤 클로"}, rarity: "epic", img: "https://via.placeholder.com/100/a142f5/FFFFFF?text=DEP" },
+      { id: "item_3", name: { en: "Legendary Shield", tr: "Efsanevi Kalkan", ru:"Легендарный щит", ja:"レジェンダリーシールド", ko:"전설의 방패"}, rarity: "legendary", img: "https://via.placeholder.com/100/f5a742/FFFFFF?text=EAK" },
+      { id: "item_12", name: { en: "Exotic Gauntlets", tr: "Exotic Eldivenler", ru:"Экзотические рукавицы", ja:"エキゾチックガントレット", ko:"이국적인 건틀릿"}, rarity: "exotic", img: "https://via.placeholder.com/100/a0aec0/FFFFFF?text=ETE" },
+      { id: "item_13", name: { en: "Ancient Soul Render", tr: "Kadim Ruh Keser", ru:"Древний потрошитель душ", ja:"エンシェントソウルレンダー", ko:"고대 영혼 절단기"}, rarity: "ancient", img: "https://via.placeholder.com/100/e53e3e/FFFFFF?text=ARK" },
+      { id: "item_14", name: { en: "Immortal Spear", tr: "Ölümsüz Mızrak", ru:"Бессмертное копье", ja:"イモータルスピアー", ko:"불멸의 창"}, rarity: "immortal", img: "https://via.placeholder.com/100/d69e2e/FFFFFF?text=IEM" },
+    ];
+    
+    const boostsData = [
+        { id: 'luck_1', name: { en: "Luck Boost I", tr: "Şans Güçlendirme I" }, description: { en: "+5% Rare Chance", tr: "+%5 Nadir Şansı" }, price: 500, rarity: "rare", type: "boost", effect: { rarityChance: { rare: 0.05, epic: 0.02 } } },
+        { id: 'money_1', name: { en: "Money Efficiency I", tr: "Para Verimliliği I" }, description: { en: "+10% Sell Revenue", tr: "+%10 Satış Geliri" }, price: 750, rarity: "epic", type: "boost", effect: { sellMultiplier: 0.10 } },
+        { id: 'cheap_case_1', name: { en: "Cheap Case I", tr: "Ucuz Kasa I" }, description: { en: "-5% Case Cost", tr: "-%5 Kasa Maliyeti" }, price: 1000, rarity: "legendary", type: "boost", effect: { caseCostReduction: 0.05 } },
+    ];
+
+    const achievementsData = [
+        { id: "first_case", name: { en: "Initiate", tr: "Başlangıç" }, description: { en: "Open your first case.", tr: "İlk kasanı aç." }, target: { caseOpened: 1 }, reward: { type: "balance", amount: 50 } },
+        { id: "novice_opener", name: { en: "Novice Opener", tr: "Acemi Kasacı" }, description: { en: "Open 10 cases.", tr: "10 kasa aç." }, target: { caseOpened: 10 }, reward: { type: "balance", amount: 200 } },
+        { id: "rare_collector", name: { en: "Rare Finder", tr: "Nadir Avcısı" }, description: { en: "Win a rare item.", tr: "Nadir bir eşya kazan." }, target: { hasRarity: "rare" }, reward: { type: "balance", amount: 150 } },
+        { id: "case_opener_master", name: { en: "Case Master", tr: "Usta Kasacı" }, description: { en: "Open 100 cases.", tr: "100 kasa aç." }, target: { caseOpened: 100 }, reward: { type: "balance", amount: 1000 } },
+        { id: "legendary_finder", name: { en: "Legend Hunter", tr: "Efsane Avcısı" }, description: { en: "Win a legendary item.", tr: "Efsanevi bir eşya kazan." }, target: { hasRarity: "legendary" }, reward: { type: "xp", amount: 250 } },
+        { id: "millionaire", name: { en: "Millionaire", tr: "Milyoner" }, description: { en: "Earn a total of 10,000$.", tr: "Toplam 10,000$ kazan." }, target: { totalMoneyEarned: 10000 }, reward: { type: "balance", amount: 2000 } },
+        { id: "merchant", name: { en: "Merchant", tr: "Tüccar" }, description: { en: "Sell 10 items.", tr: "10 eşya sat." }, target: { itemsSold: 10 }, reward: { type: "xp", amount: 100 } },
+        { id: "collector", name: { en: "Collector", tr: "Koleksiyoncu" }, description: { en: "Have 20 different items in your inventory.", tr: "Envanterinde 20 farklı eşya bulundur." }, target: { inventoryCount: 20 }, reward: { type: "balance", amount: 500 } },
+    ];
+
+    const dailyRewardsData = [
+        { day: 1, type: "balance", amount: 500, name: {en: "500 Balance", tr: "500 Bakiye"} },
+        { day: 2, type: "item", itemId: "item_1", name: {en: "Rare Sword", tr: "Nadir Kılıç"} },
+        { day: 3, type: "balance", amount: 1500, name: {en: "1500 Balance", tr: "1500 Bakiye"} },
+        { day: 4, type: "xp", amount: 50, name: {en: "50 XP", tr: "50 XP"} },
+        { day: 5, type: "boost", boostId: "luck_1", name: {en: "Luck Boost I", tr: "Şans Güçlendirme I"} },
+        { day: 6, type: "balance", amount: 5000, name: {en: "5000 Balance", tr: "5000 Bakiye"} },
+        { day: 7, type: "item", itemId: "item_2", name: {en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi"} },
+    ];
+
+    const csPathData = [
+        { tier: 1, xp: 50, reward: { type: "balance", amount: 250 } },
+        { tier: 2, xp: 150, reward: { type: "item", itemId: "item_0" } },
+        { tier: 3, xp: 300, reward: { type: "balance", amount: 1000 } },
+        { tier: 4, xp: 500, reward: { type: "boost", boostId: "luck_1" } },
+        { tier: 5, xp: 1000, reward: { type: "balance", amount: 5000 } },
+    ];
+    
+    const dom = {
+        preloader: document.getElementById("preloader"),
+        items: document.getElementById("items"),
+        result: document.getElementById("result"),
+        openBtn: document.getElementById("openBtn"),
+        balanceAmount: document.getElementById("balance-amount"),
+        xpAmount: document.getElementById("xp-amount"),
+        caseCost: document.getElementById("cost-amount"),
+        inventory: document.getElementById("inventory"),
+        noItemsMessage: document.getElementById("no-items-message"),
+        errorMessage: document.getElementById("errorMessage"),
+        currentTime: document.getElementById("current-time"),
+        modalItemName: document.getElementById("modalItemName"),
+        modalItemImage: document.getElementById("modalItemImage"),
+        modalItemRarity: document.getElementById("modalItemRarity"),
+        modalItemSellPrice: document.getElementById("modalItemSellPrice"),
+        modalMessage: document.getElementById("modalMessage"),
+        sellItemBtn: document.getElementById("sellItemBtn"),
+        favoriteItemBtn: document.getElementById("favoriteItemBtn"),
+        patchesList: document.getElementById("patches-list"),
+        boostsContainer: document.getElementById("boosts-container"),
+        noBoostsMessage: document.getElementById("no-boosts-message"),
+        achievementsList: document.getElementById("achievements-list"),
+        noAchievementsMessage: document.getElementById("no-achievements-message"),
+        dailyRewardsMenuBtn: document.getElementById("dailyRewardsMenuBtn"),
+        dailyRewardsGrid: document.getElementById("daily-rewards-grid"),
+        dailyRewardMessage: document.getElementById("daily-reward-message"),
+        csPathRewardsList: document.getElementById("cs-path-rewards-list"),
+        csPathProgressBar: document.getElementById("cs-path-progress-bar"),
+        csPathXpText: document.getElementById("cs-path-xp-text"),
+        rarityFilter: document.getElementById("rarityFilter"),
+        typeFilter: document.getElementById("typeFilter"),
+        autoSellCheckboxes: Object.fromEntries(["common", "rare", "epic", "legendary", "exotic", "ancient", "immortal"].map(r => [r, document.getElementById(`autoSell${r.charAt(0).toUpperCase() + r.slice(1)}`)])),
+        saveAutoSellBtn: document.getElementById("saveAutoSellBtn"),
+        autoSellStatus: document.getElementById("auto-sell-status"),
+        autoOpenInfo: document.getElementById("auto-open-info"),
+        autoOpenStartBtn: document.getElementById("auto-open-start-btn"),
+        autoOpenStopBtn: document.getElementById("auto-open-stop-btn"),
+        autoOpenCount: document.getElementById("auto-open-count"),
+        sellLastBtn: document.getElementById("sellLastBtn"),
+        muteBtn: document.getElementById("muteBtn"),
+        muteIconContainer: document.getElementById("muteIconContainer"),
+        achievementToast: document.getElementById("achievement-toast"),
+        toastTitle: document.getElementById("toast-title"),
+        toastDesc: document.getElementById("toast-desc"),
+    };
+
+    const sfx = {
+        open: document.getElementById("openSound"),
+        win: document.getElementById("winSound"),
+        claim: document.getElementById("claimSound"),
+    };
+    
+    const svgIcons = {
+        volumeOn: `<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`,
+        volumeOff: `<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`
+    };
+
+    let currentLang, currentBalance, currentCaseCost, inventory, nextItemId;
+    let playerStats, autoSellRarities, autoOpenInterval, autoOpenedCases;
+    let currentModalItem = null;
+    let lastWonItem = null;
+    const baseCaseCost = 100;
+    const DAILY_CASE_LIMIT = 5000;
+    const XP_PER_CASE = 10;
+    const raritySellPrices = { common: 10, rare: 50, epic: 200, legendary: 1000, exotic: 5000, ancient: 15000, immortal: 50000 };
+    const rarityColors = { common: '#555', rare: '#4299e1', epic: '#805ad5', legendary: '#ed8936', exotic: '#cbd5e0', ancient: '#f56565', immortal: '#ecc94b' };
+    const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4, exotic: 5, ancient: 6, immortal: 7 };
+    let rarityWeights, baseRarityWeights = { common: 0.60, rare: 0.25, epic: 0.10, legendary: 0.03, exotic: 0.01, ancient: 0.005, immortal: 0.005 };
+
+    function translateText(key, replacements = {}) {
+        let text = (translations[currentLang]?.[key]) || translations['en']?.[key] || key;
+        for (const placeholder in replacements) {
+            text = text.replace(`{${placeholder}}`, replacements[placeholder]);
+        }
+        return text;
+    }
+    
+    function getTranslatedTextFromObject(textObject) {
+        if (!textObject) return '';
+        return textObject[currentLang] || textObject['en'] || Object.values(textObject)[0] ||'';
+    }
+    
+    function openModal(modalId) {
+        document.getElementById(modalId)?.classList.add('show');
+        const modalActions = {
+            inventoryModal: applyInventoryFilters,
+            boostShopModal: populateBoostShop,
+            achievementsModal: renderAchievements,
+            autoSellModal: loadAutoSellSettings,
+            autoOpenModal: updateAutoOpenInfo,
+            languageSelectModal: updateLanguageButtons,
+            dailyRewardModal: updateDailyRewardsUI,
+            csPathModal: updateCsPathUI,
+        };
+        modalActions[modalId]?.();
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId)?.classList.remove('show');
+        if (modalId === 'itemDetailsModal') currentModalItem = null;
+    }
+    
+    function getRandomItemByRarity() {
+        const rand = Math.random();
+        let cumulativeWeight = 0;
+        for (const rarity in rarityWeights) {
+            cumulativeWeight += rarityWeights[rarity];
+            if (rand < cumulativeWeight) {
+                const filteredItems = itemsData.filter(item => item.rarity === rarity);
+                return filteredItems.length > 0 ? filteredItems[Math.floor(Math.random() * filteredItems.length)] : itemsData[0];
+            }
+        }
+        return itemsData[0];
+    }
+    
+    function calculateSellPrice(item) {
+        if (!item || item.type === "boost") return 0;
+        let price = raritySellPrices[item.rarity] || 0;
+        inventory.filter(i => i.type === "boost" && i.effect?.sellMultiplier)
+                 .forEach(boost => price *= (1 + boost.effect.sellMultiplier));
+        return Math.floor(price);
+    }
+    
+    async function openCase(isAuto = false) {
+        const today = new Date().toDateString();
+        if(playerStats.lastCaseOpenDate !== today) {
+            playerStats.casesOpenedToday = 0;
+            playerStats.lastCaseOpenDate = today;
+        }
+        if (playerStats.casesOpenedToday >= DAILY_CASE_LIMIT) {
+            showErrorMessage('dailyCaseLimitReached', 5000, { limit: DAILY_CASE_LIMIT });
+            if (isAuto) stopAutoOpen();
+            return;
+        }
+        if (currentBalance < currentCaseCost) {
+            showErrorMessage(isAuto ? "autoSellStoppedBalance" : "notEnoughBalance", 5000, { cost: Math.round(currentCaseCost) });
+            if (isAuto) stopAutoOpen();
+            return;
+        }
+
+        dom.openBtn.disabled = true;
+        dom.sellLastBtn.disabled = true;
+        sfx.open.currentTime=0; sfx.open.play();
+        currentBalance -= currentCaseCost;
+        playerStats.caseOpened++; 
+        playerStats.casesOpenedToday++;
+        
+        const wonItemData = getRandomItemByRarity(); 
+        
+        dom.items.innerHTML = '';
+        dom.items.style.transition = "none";
+        dom.items.style.transform = "translateX(0)";
+        void dom.items.offsetWidth;
+
+        const numItems = 100;
+        const winIndex = 80;
+        for (let i = 0; i < numItems; i++) {
+            const item = (i === winIndex) ? wonItemData : getRandomItemByRarity();
+            dom.items.appendChild(createItemElement(item));
+        }
+
+        const itemFullWidth = dom.items.children[0].offsetWidth + (parseFloat(getComputedStyle(dom.items.children[0]).marginLeft) * 2);
+        const scrollAmount = (winIndex * itemFullWidth) - (dom.items.parentElement.offsetWidth / 2) + (itemFullWidth / 2);
+
+        dom.items.style.transition = `transform 3.5s cubic-bezier(0.25, 1, 0.5, 1)`;
+        dom.items.style.transform = `translateX(-${scrollAmount}px)`;
+        
+        await new Promise(resolve => setTimeout(resolve, 3550));
+
+        dom.items.children[winIndex].classList.add('highlighted');
+        const wonItemName = getTranslatedTextFromObject(wonItemData.name);
+        dom.result.innerHTML = `${translateText('youWon')} <span class="${wonItemData.rarity} highlight">${wonItemName}</span>`;
+        sfx.win.currentTime=0; sfx.win.play();
+
+        playerStats.xp += XP_PER_CASE;
+        playerStats.raritiesWon[wonItemData.rarity] = true;
+
+        if (autoSellRarities.includes(wonItemData.rarity)) {
+            const sellPrice = calculateSellPrice(wonItemData);
+            currentBalance += sellPrice;
+            playerStats.totalMoneyEarned += sellPrice;
+            playerStats.itemsSold++;
+            dom.result.innerHTML += `<br><span style="color:#00ff99;">(+${sellPrice}$) ${translateText('itemSoldAuto')}</span>`;
+            lastWonItem = null;
+        } else {
+            const newItem = { ...wonItemData, id: nextItemId++, type: "item", isFavorite: false };
+            inventory.push(newItem);
+            lastWonItem = newItem;
+            dom.sellLastBtn.disabled = false;
+        }
+        
+        updateUI();
+        checkAchievements(); 
+        updateCsPathUI();
+        if(!isAuto) dom.openBtn.disabled = false;
+    }
+
+    function createItemElement(itemData) {
+        const el = document.createElement("div");
+        el.className = `item ${itemData.rarity}`;
+        el.innerHTML = `
+            <img src="${itemData.img}" alt="${getTranslatedTextFromObject(itemData.name)}" loading="lazy">
+            <div class="item-name">${getTranslatedTextFromObject(itemData.name)}</div>
+        `;
+        return el;
+    }
+
+    function createInventoryItemElement(item) {
+        const el = document.createElement("div");
+        const itemName = getTranslatedTextFromObject(item.name);
+        const itemClass = item.type === "boost" ? `boost-item inventory-item ${item.rarity}-boost` : `inventory-item ${item.rarity}`;
+        el.className = itemClass + (item.isFavorite ? ' favorite' : '');
+        el.dataset.itemId = item.id;
+        el.innerHTML = `
+            <img src="${item.img}" alt="${itemName}">
+            <div class="item-name inventory-item-name">${itemName}</div>
+            ${item.isFavorite ? '<span class="favorite-star">⭐</span>' : ''}
+        `;
+        el.addEventListener('click', () => openItemDetailsModal(item));
+        return el;
+    }
+
+    function updateInventory(filteredInv = inventory) {
+        dom.inventory.innerHTML = '';
+        dom.noItemsMessage.style.display = filteredInv.length === 0 ? 'block' : 'none';
+        
+        filteredInv.sort((a, b) => {
+            if (a.isFavorite !== b.isFavorite) return b.isFavorite ? -1 : 1;
+            if (a.type !== b.type) return a.type === 'boost' ? -1 : 1;
+            return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+        }).forEach(item => dom.inventory.appendChild(createInventoryItemElement(item)));
+    }
+
+    function renderAchievements() {
+        dom.achievementsList.innerHTML = '';
+        dom.noAchievementsMessage.style.display = achievementsData.length === 0 ? 'block' : 'none';
+        achievementsData.forEach(ach => {
+            const achData = playerStats.achievements.find(pa => pa.id === ach.id) || { id: ach.id, completed: false };
+            const achEl = document.createElement("div");
+            achEl.className = `achievement-item ${achData.completed ? 'completed' : ''}`;
+            let rewardText = "";
+            const reward = ach.reward;
+            if (reward.type === "balance") rewardText = `${translateText('reward')}: ${reward.amount}$`;
+            else if (reward.type === "xp") rewardText = `${translateText('reward')}: ${reward.amount} XP`;
+            else if (reward.type === "boost") {
+                const boost = boostsData.find(b => b.id === reward.boostId);
+                rewardText = `${translateText('reward')}: ${boost ? getTranslatedTextFromObject(boost.name) : ''}`;
+            }
+            achEl.innerHTML = `
+                <h4>${getTranslatedTextFromObject(ach.name)}</h4>
+                <p>${getTranslatedTextFromObject(ach.description)}</p>
+                <div class="reward-text">${rewardText}</div>
+                <div class="completion-status">${translateText(achData.completed ? 'claimedBtn' : 'inProgressAchievement')}</div>
+            `;
+            dom.achievementsList.appendChild(achEl);
+        });
+    }
+    
+    function updatePatchNotes() {
+        dom.patchesList.innerHTML = patchNotesData
+            .map(p => `<li><strong>${p.version}:</strong> ${getTranslatedTextFromObject(p.text)}</li>`)
+            .join('');
+    }
+
+    function applyBoostEffects() {
+        rarityWeights = { ...baseRarityWeights };
+        currentCaseCost = baseCaseCost;
+        const activeBoosts = inventory.filter(item => item.type === "boost");
+        activeBoosts.forEach(source => {
+            if (source.effect?.rarityChance) {
+                for (const rarity in source.effect.rarityChance) {
+                    if (rarityWeights[rarity] !== undefined) rarityWeights[rarity] += source.effect.rarityChance[rarity];
+                }
+            }
+            if (source.effect?.caseCostReduction) currentCaseCost *= (1 - source.effect.caseCostReduction);
+        });
+        const totalWeight = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
+        if (totalWeight > 0) {
+            for (const r in rarityWeights) rarityWeights[r] /= totalWeight;
+        }
+        dom.caseCost.textContent = Math.round(currentCaseCost);
+    }
+    
+    function applyInventoryFilters() {
+        const rarity = dom.rarityFilter.value;
+        const type = dom.typeFilter.value;
+        const filtered = inventory.filter(item => 
+            (rarity === 'all' || item.rarity === rarity) && (type === 'all' || item.type === type)
+        );
+        updateInventory(filtered);
+    }
+    
+    function loadAutoSellSettings() {
+        Object.keys(dom.autoSellCheckboxes).forEach(r => {
+            const checkbox = dom.autoSellCheckboxes[r];
+            if (checkbox) checkbox.checked = autoSellRarities.includes(r);
+        });
+        updateAutoSellStatus();
+    }
+    function saveAutoSellSettings() {
+        autoSellRarities = Object.keys(dom.autoSellCheckboxes).filter(r => dom.autoSellCheckboxes[r]?.checked);
+        saveGameData();
+        updateAutoSellStatus();
+        showErrorMessage("saveSettingsBtn", 3000);
+    }
+    function updateAutoSellStatus() {
+        const rarities = autoSellRarities.map(r => translateText(`${r}Rarity`)).join(', ');
+        dom.autoSellStatus.textContent = autoSellRarities.length === 0 
+            ? translateText("autoSellStatusOff") 
+            : translateText("autoSellStatusOn", { rarities });
+        dom.autoSellStatus.style.color = autoSellRarities.length > 0 ? "#00ff99" : "#ccc";
+    }
+
+    function updateDailyRewardsUI() {
+        dom.dailyRewardsGrid.innerHTML = '';
+        dom.dailyRewardMessage.textContent = '';
+        const today = new Date().toDateString();
+        const claimAvailable = playerStats.lastClaimDate !== today;
+
+        dailyRewardsData.forEach((reward, index) => {
+            const rewardEl = document.createElement('div');
+            rewardEl.className = 'daily-reward-item';
+            const dayIndex = index + 1;
+            const isCurrentDay = playerStats.dailyRewardCycle % dailyRewardsData.length === index;
+
+            if (isCurrentDay && claimAvailable) rewardEl.classList.add('claimable');
+            
+            let previewHTML = '';
+            if (reward.type === 'balance') previewHTML = `<span>${reward.amount}$</span>`;
+            else if (reward.type === 'xp') previewHTML = `<span style="color:#8a2be2;">${reward.amount}XP</span>`;
+            else if (reward.type === 'item') {
+                const item = itemsData.find(i => i.id === reward.itemId);
+                if (item) previewHTML = `<img src="${item.img}" alt="${getTranslatedTextFromObject(item.name)}">`;
+            } else if (reward.type === 'boost') {
+                const boost = boostsData.find(b => b.id === reward.boostId);
+                if(boost) previewHTML = `<div style="font-size:20px; color:#00ffff;">${getTranslatedTextFromObject(boost.name)}</div>`;
+            }
+
+            rewardEl.innerHTML = `
+                <div class="day-number">${translateText('day')} ${dayIndex}</div>
+                <div class="reward-preview">${previewHTML}</div>
+                <div class="reward-name">${getTranslatedTextFromObject(reward.name)}</div>
+            `;
+
+            if (isCurrentDay && claimAvailable) {
+                rewardEl.addEventListener('click', () => claimDailyReward(reward, index));
+            }
+            dom.dailyRewardsGrid.appendChild(rewardEl);
+        });
+    }
+    
+    function claimDailyReward(rewardData, index) {
+        if (playerStats.lastClaimDate === new Date().toDateString()) {
+            dom.dailyRewardMessage.textContent = translateText('dailyRewardAlreadyClaimed');
+            return;
+        }
+        sfx.claim.currentTime=0; sfx.claim.play();
+
+        if (rewardData.type === 'balance') currentBalance += rewardData.amount;
+        else if (rewardData.type === 'xp') playerStats.xp += rewardData.amount;
+        else if (rewardData.type === 'item') {
+            const item = itemsData.find(i => i.id === rewardData.itemId);
+            if (item) inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+        } else if (rewardData.type === 'boost') {
+            const boost = boostsData.find(b => b.id === rewardData.boostId);
+            if (boost && !inventory.some(i => i.id === boost.id)) {
+                inventory.push({ ...boost, type: 'boost', isFavorite: false });
+            }
+        }
+        
+        playerStats.lastClaimDate = new Date().toDateString();
+        playerStats.dailyRewardCycle++;
+        dom.dailyRewardMessage.textContent = translateText('dailyRewardClaimed', { day: index + 1 });
+        updateDailyRewardsUI();
+        updateDailyRewardNotification();
+        updateUI();
+    }
+
+    function checkAchievements() {
+        playerStats.favoriteCount = inventory.filter(item => item.isFavorite && item.type !== "boost").length;
+        playerStats.inventoryCount = inventory.filter(item => item.type === "item").length;
+
+        achievementsData.forEach(ach => {
+            const achProgress = playerStats.achievements.find(pa => pa.id === ach.id);
+            if (achProgress?.completed) return;
+
+            let isCompleted = false;
+            const target = ach.target;
+            if (target.caseOpened && playerStats.caseOpened >= target.caseOpened) isCompleted = true;
+            if (target.totalMoneyEarned && playerStats.totalMoneyEarned >= target.totalMoneyEarned) isCompleted = true;
+            if (target.hasRarity && playerStats.raritiesWon[target.hasRarity]) isCompleted = true;
+            if (target.boughtBoost && playerStats.boughtBoost >= target.boughtBoost) isCompleted = true;
+            if (target.itemsSold && playerStats.itemsSold >= target.itemsSold) isCompleted = true;
+            if (target.inventoryCount && playerStats.inventoryCount >= target.inventoryCount) isCompleted = true;
+
+            if (isCompleted) {
+                if (!achProgress) playerStats.achievements.push({ id: ach.id, completed: true });
+                else achProgress.completed = true;
+                awardAchievement(ach);
+            }
+        });
+        renderAchievements();
+        updateAutoOpenInfo();
+    }
+    
+    function awardAchievement(ach) {
+        const reward = ach.reward;
+        if (reward.type === "balance") currentBalance += reward.amount;
+        else if (reward.type === "xp") playerStats.xp += reward.amount;
+        else if (reward.type === "boost") {
+            const boost = boostsData.find(b => b.id === reward.boostId);
+            if (boost && !inventory.some(i => i.id === boost.id)) {
+                inventory.push({ ...boost, type: "boost", isFavorite: false });
+            }
+        }
+        showAchievementToast(ach);
+        sfx.win.currentTime = 0; sfx.win.play();
+        updateUI();
+    }
+
+    function showAchievementToast(achievement) {
+        dom.toastTitle.textContent = getTranslatedTextFromObject(achievement.name);
+        dom.toastDesc.textContent = getTranslatedTextFromObject(achievement.description);
+        dom.achievementToast.classList.add('show');
+        setTimeout(() => {
+            dom.achievementToast.classList.remove('show');
+        }, 5000);
+    }
+    
+    function updateCsPathUI() {
+        dom.csPathRewardsList.innerHTML = '';
+        const nextTier = csPathData.find(tier => !(playerStats.csPathClaimedTiers?.[tier.tier - 1]));
+        const nextTierXP = nextTier ? nextTier.xp : csPathData[csPathData.length-1].xp;
+        const progressPercentage = Math.min((playerStats.xp / nextTierXP) * 100, 100);
+
+        dom.csPathProgressBar.style.width = `${progressPercentage}%`;
+        dom.csPathXpText.textContent = `${translateText('xpUnit')}: ${playerStats.xp} / ${nextTierXP}`;
+
+        csPathData.forEach(tier => {
+            const tierEl = document.createElement('div');
+            tierEl.className = 'cs-path-tier';
+            const isClaimed = playerStats.csPathClaimedTiers?.[tier.tier - 1];
+            const canClaim = playerStats.xp >= tier.xp && !isClaimed;
+
+            if(isClaimed) tierEl.classList.add('claimed');
+            if(canClaim) tierEl.classList.add('unlocked');
+            
+            let rewardText = '';
+            if (tier.reward.type === 'balance') rewardText = `${tier.reward.amount}$`;
+            else if (tier.reward.type === 'item') {
+                const item = itemsData.find(i => i.id === tier.reward.itemId);
+                rewardText = item ? getTranslatedTextFromObject(item.name) : '';
+            } else if (tier.reward.type === 'boost') {
+                const boost = boostsData.find(b => b.id === tier.reward.boostId);
+                rewardText = boost ? getTranslatedTextFromObject(boost.name) : '';
+            }
+
+            tierEl.innerHTML = `
+                <div class="cs-path-tier-info">
+                    <div class="tier-level">${translateText('tier')} ${tier.tier} (${tier.xp} ${translateText('xpUnit')})</div>
+                    <div class="tier-reward">${translateText('reward')}: ${rewardText}</div>
+                </div>
+                <button class="claim-btn" ${!canClaim ? 'disabled' : ''}>${isClaimed ? translateText('claimedBtn') : translateText('claimBtn')}</button>
+            `;
+            if (canClaim) {
+                tierEl.querySelector('.claim-btn').addEventListener('click', () => claimCsPathReward(tier));
+            }
+            dom.csPathRewardsList.appendChild(tierEl);
+        });
+    }
+
+    function claimCsPathReward(tierData) {
+        if (playerStats.xp < tierData.xp || playerStats.csPathClaimedTiers?.[tierData.tier - 1]) return;
+        
+        const reward = tierData.reward;
+        if (reward.type === 'balance') currentBalance += reward.amount;
+        else if (reward.type === 'item') {
+            const item = itemsData.find(i => i.id === reward.itemId);
+            if(item) inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+        } else if (reward.type === 'boost') {
+            const boost = boostsData.find(b => b.id === reward.boostId);
+            if (boost && !inventory.some(i => i.id === boost.id)) {
+                inventory.push({ ...boost, type: 'boost', isFavorite: false });
+            }
+        }
+        
+        sfx.claim.currentTime=0; sfx.claim.play();
+        if (!playerStats.csPathClaimedTiers) playerStats.csPathClaimedTiers = [];
+        playerStats.csPathClaimedTiers[tierData.tier - 1] = true;
+        showErrorMessage(translateText('csPathRewardClaimed', {tier: tierData.tier}));
+        updateCsPathUI();
+        updateUI();
+    }
+    
+    function initializeGame(isReset = false) {
+         currentLang = localStorage.getItem('gameLanguage_v5') || 'tr';
+         currentBalance = 1000;
+         inventory = [];
+         nextItemId = 0;
+         lastWonItem = null;
+         playerStats = { caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
+         autoSellRarities = [];
+         if (isReset) {
+            stopAutoOpen();
+            showErrorMessage("gameReset", 3000);
+         }
+         updateAllUI();
+    }
+
+    function saveGameData() {
+        try {
+            const data = {
+                lang: currentLang, balance: currentBalance, inventory, nextItemId, playerStats, autoSellRarities,
+            };
+            localStorage.setItem('gameData_v5', JSON.stringify(data));
+        } catch (e) { showErrorMessage("gameSavedError"); }
+    }
+
+    function loadGameData() {
+        try {
+            const savedData = localStorage.getItem('gameData_v5');
+            if (!savedData) { initializeGame(); return; }
+            const data = JSON.parse(savedData);
+            
+            const defaultStats = { caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
+            
+            currentLang = data.lang ?? 'tr';
+            currentBalance = data.balance ?? 1000;
+            inventory = data.inventory ?? [];
+            nextItemId = data.nextItemId ?? 0;
+            playerStats = { ...defaultStats, ...(data.playerStats || {}) };
+            autoSellRarities = data.autoSellRarities ?? [];
+
+            updateAllUI();
+            console.log("Oyun başarıyla yüklendi!");
+        } catch (e) {
+            console.error("Yükleme hatası:", e);
+            showErrorMessage("gameLoadedError");
+            initializeGame(true);
+        }
+    }
+    
+    function setLanguage(lang) { 
+        currentLang = lang;
+        localStorage.setItem('gameLanguage_v5', lang);
+        document.documentElement.lang = lang.split('-')[0];
+        document.querySelectorAll('[data-lang-key]').forEach(element => {
+            const key = element.dataset.langKey;
+            
+            // DÜZELTME: Sadece metin içeren elementleri güncelle
+            if (element.children.length === 0 || (element.children.length === 1 && element.children[0].tagName === 'SPAN' && !["balance-amount", "cost-amount", "xp-amount"].includes(element.children[0].id))) {
+                element.textContent = translateText(key);
+            }
+        });
+        document.querySelectorAll('[data-lang-key][title]').forEach(el => {
+            el.title = translateText(el.dataset.langKey);
+        });
+        updateLanguageButtons();
+        updateUI();
+        renderAchievements();
+        updatePatchNotes();
+        updateDailyRewardsUI();
+        updateCsPathUI();
+        updateAutoSellStatus();
+    }
+
+    function updateAllUI() {
+        setLanguage(currentLang);
+        updateUI();
+        populateBoostShop();
+        loadAutoSellSettings();
+        updateAutoOpenInfo();
+        updateDailyRewardNotification();
+        updateTime();
+        toggleMute(playerStats.isMuted, true);
+    }
+
+    function updateUI() {
+        dom.balanceAmount.textContent = Math.round(currentBalance);
+        dom.xpAmount.textContent = playerStats.xp;
+        applyBoostEffects();
+        updateInventory();
+        saveGameData();
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        dom.preloader.classList.add('hidden');
+        dom.preloader.addEventListener('transitionend', () => dom.preloader.remove());
+        
+        loadGameData();
+        
+        setInterval(updateTime, 1000);
+        
+        dom.openBtn.addEventListener("click", () => openCase(false));
+        dom.sellItemBtn.addEventListener('click', () => { if(sellItem(currentModalItem)) closeModal('itemDetailsModal'); });
+        dom.favoriteItemBtn.addEventListener('click', toggleFavorite);
+        dom.rarityFilter.addEventListener('change', applyInventoryFilters);
+        dom.typeFilter.addEventListener('change', applyInventoryFilters);
+        dom.saveAutoSellBtn.addEventListener('click', saveAutoSellSettings);
+        dom.autoOpenStartBtn.addEventListener('click', startAutoOpen);
+        dom.autoOpenStopBtn.addEventListener('click', stopAutoOpen);
+        dom.sellLastBtn.addEventListener('click', sellLastItem);
+        dom.muteBtn.addEventListener('click', () => toggleMute());
+
+        document.getElementById("main-menu-btn").addEventListener('click', () => {
+            updateDailyRewardNotification();
+            openModal('mainMenuModal');
+        });
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) closeModal(overlay.id);
+            });
+        });
+        document.querySelectorAll('#language-options button').forEach(button => {
+            button.addEventListener('click', () => setLanguage(button.dataset.langCode));
+        });
+        document.querySelector('button[onclick="resetGameAndConfirm()"]').addEventListener('click', resetGameAndConfirm);
+        document.querySelector('button[onclick="sellAllFilteredItems()"]').addEventListener('click', sellAllFilteredItems);
+    });
+
+    window.addEventListener('beforeunload', saveGameData);
+
+    function updateLanguageButtons(){
+        document.querySelectorAll('#language-options button').forEach(button => {
+            button.classList.toggle('selected', button.dataset.langCode === currentLang);
+        });
+    }
+
+    function updateTime() { dom.currentTime.textContent = new Date().toLocaleTimeString(currentLang.split('-')[0]); }
+
+    function openItemDetailsModal(item) {
+        currentModalItem = item; 
+        const itemName = getTranslatedTextFromObject(item.name);
+        dom.modalItemName.textContent = itemName;
+        dom.modalItemImage.src = item.img || '';
+        dom.modalItemImage.style.borderColor = rarityColors[item.rarity];
+        dom.modalItemImage.style.boxShadow = `0 0 15px ${rarityColors[item.rarity]}`;
+        dom.modalItemRarity.textContent = translateText(`${item.rarity}Rarity`);
+        dom.modalItemRarity.style.color = rarityColors[item.rarity];
+        dom.modalMessage.textContent = ''; 
+
+        const isBoost = item.type === "boost";
+        dom.sellItemBtn.style.display = isBoost ? 'none' : 'inline-block';
+        dom.favoriteItemBtn.style.display = isBoost ? 'none' : 'inline-block';
+        
+        if (isBoost) {
+            dom.modalItemSellPrice.textContent = translateText('boostCannotBeSold');
+            dom.modalItemSellPrice.style.color = "#FFD700";
+        } else {
+            const sellPrice = calculateSellPrice(item);
+            dom.modalItemSellPrice.textContent = `${translateText('sellBtn')}: ${sellPrice}$`;
+            dom.modalItemSellPrice.style.color = "#00ff99";
+            dom.favoriteItemBtn.classList.toggle('active', item.isFavorite);
+            dom.favoriteItemBtn.textContent = item.isFavorite ? translateText('unfavoriteBtn') : translateText('favoriteBtn');
+        }
+        openModal('itemDetailsModal');
+    }
+    
+    function sellItem(itemToSell) {
+        if (!itemToSell) return false;
+        if (itemToSell.type === "boost") {
+            showErrorMessage('boostCannotBeSold');
+            return false;
+        }
+        if (itemToSell.isFavorite) {
+            showErrorMessage('cannotSellFavorite');
+            return false;
+        }
+
+        const itemIndex = inventory.findIndex(i => i.id === itemToSell.id);
+        if (itemIndex > -1) {
+            const sellPrice = calculateSellPrice(itemToSell);
+            currentBalance += sellPrice;
+            playerStats.totalMoneyEarned += sellPrice;
+            playerStats.itemsSold = (playerStats.itemsSold || 0) + 1;
+            inventory.splice(itemIndex, 1);
+            
+            updateUI();
+            checkAchievements();
+            return true;
+        } 
+        return false;
+    }
+    
+    function sellAllFilteredItems() {
+        const itemsToSell = inventory.filter(item => {
+            const rarityMatch = dom.rarityFilter.value === 'all' || item.rarity === dom.rarityFilter.value;
+            const typeMatch = dom.typeFilter.value === 'all' || item.type === dom.typeFilter.value;
+            return rarityMatch && typeMatch && item.type !== 'boost' && !item.isFavorite;
+        });
+
+        if (itemsToSell.length === 0) {
+            showErrorMessage("noFilteredItemsToSell");
+            return;
+        }
+
+        let totalSoldCount = 0;
+        let totalSoldValue = 0;
+        const idsToSell = itemsToSell.map(i => i.id);
+
+        inventory = inventory.filter(item => {
+            if (idsToSell.includes(item.id)) {
+                const sellPrice = calculateSellPrice(item);
+                currentBalance += sellPrice;
+                playerStats.totalMoneyEarned += sellPrice;
+                totalSoldValue += sellPrice;
+                totalSoldCount++;
+                return false;
+            }
+            return true;
+        });
+        playerStats.itemsSold = (playerStats.itemsSold || 0) + totalSoldCount;
+        
+        updateUI();
+        showErrorMessage("filteredItemsSold", 5000, { count: totalSoldCount, value: totalSoldValue });
+        checkAchievements();
+    }
+    
+    function toggleFavorite() {
+        if (!currentModalItem || currentModalItem.type === "boost") return;
+        const item = inventory.find(i => i.id === currentModalItem.id);
+        if (item) {
+            item.isFavorite = !item.isFavorite;
+            const itemName = getTranslatedTextFromObject(item.name);
+            dom.modalMessage.textContent = translateText(item.isFavorite ? 'favoriteAdded' : 'favoriteRemoved', { item: itemName });
+            dom.favoriteItemBtn.classList.toggle('active', item.isFavorite);
+            dom.favoriteItemBtn.textContent = item.isFavorite ? translateText('unfavoriteBtn') : translateText('favoriteBtn');
+            updateInventory();
+            checkAchievements();
+        }
+    }
+    
+    function populateBoostShop() {
+        dom.boostsContainer.innerHTML = '';
+        dom.noBoostsMessage.style.display = boostsData.length === 0 ? 'block' : 'none';
+        boostsData.forEach(boost => {
+            const hasBoost = inventory.some(item => item.id === boost.id);
+            const boostEl = document.createElement("button");
+            boostEl.className = `boost-item ${boost.rarity}-boost ${hasBoost ? 'disabled' : ''}`;
+            boostEl.innerHTML = `
+                <div class="boost-name">${getTranslatedTextFromObject(boost.name)}</div>
+                <div class="boost-description">${getTranslatedTextFromObject(boost.description)}</div>
+                <div class="boost-price">${boost.price}$</div>
+            `;
+            boostEl.disabled = hasBoost;
+            boostEl.addEventListener('click', () => buyBoost(boost));
+            dom.boostsContainer.appendChild(boostEl);
+        });
+    }
+
+    function buyBoost(boost) {
+        if (inventory.some(item => item.id === boost.id)) {
+            showErrorMessage("boostAlreadyOwned");
+            return;
+        }
+        if (currentBalance < boost.price) {
+            showErrorMessage("notEnoughBalance", 5000, { cost: boost.price });
+            return;
+        }
+        currentBalance -= boost.price;
+        inventory.push({ ...boost, type: "boost", isFavorite: false });
+        playerStats.boughtBoost++; 
+        updateUI();
+        populateBoostShop();
+        showErrorMessage(translateText('boostPurchased', { boostName: getTranslatedTextFromObject(boost.name) }), 3000);
+        sfx.win.currentTime = 0; sfx.win.play();
+        checkAchievements();
+    }
+    
+    function startAutoOpen() {
+        const completedCount = playerStats.achievements.filter(a => a.completed).length;
+        if (completedCount < 5) {
+            showErrorMessage("autoOpenMinAchievements", 5000, { count: completedCount });
+            return;
+        }
+        dom.autoOpenStartBtn.disabled = true; dom.autoOpenStopBtn.disabled = false; dom.openBtn.disabled = true;
+        autoOpenedCases = 0;
+        autoOpenInterval = setInterval(async () => {
+            if (currentBalance < currentCaseCost || playerStats.casesOpenedToday >= DAILY_CASE_LIMIT) {
+                stopAutoOpen();
+                return;
+            }
+            await openCase(true);
+            autoOpenedCases++;
+            dom.autoOpenCount.textContent = `${translateText('casesOpened')} ${autoOpenedCases}`;
+        }, 4000);
+    }
+    
+    function stopAutoOpen() {
+        if (autoOpenInterval) {
+            clearInterval(autoOpenInterval);
+            autoOpenInterval = null;
+            dom.autoOpenStartBtn.disabled = false; dom.autoOpenStopBtn.disabled = true; dom.openBtn.disabled = false;
+            showErrorMessage("autoOpenStopped", 3000);
+        }
+    }
+    
+    function updateAutoOpenInfo() {
+        const completedCount = playerStats.achievements.filter(a => a.completed).length;
+        dom.autoOpenInfo.textContent = translateText("autoOpenMinAchievements", { count: completedCount });
+        dom.autoOpenStartBtn.disabled = completedCount < 5;
+    }
+    
+    function updateDailyRewardNotification() {
+        const today = new Date().toDateString();
+        const claimAvailable = playerStats.lastClaimDate !== today;
+        const notificationDot = dom.dailyRewardsMenuBtn.querySelector('.notification-dot');
+        if (claimAvailable && !notificationDot) {
+            const dot = document.createElement('div');
+            dot.className = 'notification-dot';
+            dom.dailyRewardsMenuBtn.appendChild(dot);
+        } else if (!claimAvailable && notificationDot) {
+            notificationDot.remove();
+        }
+    }
+
+    function showErrorMessage(key, time = 3000, replacements = {}) { 
+        dom.errorMessage.textContent = translateText(key, replacements);
+        dom.errorMessage.classList.add("show");
+        setTimeout(() => dom.errorMessage.classList.remove("show"), time);
+    } 
+
+    function resetGameAndConfirm() { 
+        if (confirm(translateText("confirmResetGame"))) {
+             initializeGame(true);
+        }
+    }
+
+    function sellLastItem() {
+        if (lastWonItem && inventory.some(i => i.id === lastWonItem.id)) {
+            if (sellItem(lastWonItem)) {
+                showErrorMessage(translateText('itemSold', { item: getTranslatedTextFromObject(lastWonItem.name), price: calculateSellPrice(lastWonItem) }));
+                lastWonItem = null;
+                dom.sellLastBtn.disabled = true;
+            }
+        } else {
+            showErrorMessage('noSellableItem');
+            dom.sellLastBtn.disabled = true;
+        }
+    }
+
+    function toggleMute(forceState, initializing = false) {
+        if (!initializing) {
+            playerStats.isMuted = !playerStats.isMuted;
+        } else {
+            playerStats.isMuted = forceState ?? false;
+        }
+
+        for (const sound in sfx) {
+            sfx[sound].muted = playerStats.isMuted;
+        }
+        dom.muteIconContainer.innerHTML = playerStats.isMuted ? svgIcons.volumeOff : svgIcons.volumeOn;
+        if(!initializing) saveGameData();
+    }
+  </script>
+</body>
+</html>
