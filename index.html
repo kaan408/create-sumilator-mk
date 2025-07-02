@@ -123,6 +123,13 @@
       border-radius: 10px;
       border: 1px solid #00ffff;
       box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+      flex-wrap: wrap; /* Mobil için */
+      justify-content: center;
+    }
+
+    #stats > div {
+        display: flex;
+        align-items: center;
     }
 
     #balance span, #case-cost span, #player-xp span {
@@ -168,17 +175,10 @@
       overflow: hidden;
       flex-shrink: 0;
     }
-    .item.error {
-        background: linear-gradient(135deg, #cc0000, #ff4d4d);
-        border: 2px solid #ff0000;
-        color: white;
-        font-size: 14px;
-        text-shadow: 0 0 5px black;
-    }
 
-    .item img {
-      width: 80px;
-      height: 80px;
+    .item img, .inventory-item img, .item-details-modal .item-display img, .daily-reward-item img {
+      width: 80%;
+      height: 65%;
       object-fit: contain;
       margin-bottom: 5px;
       filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
@@ -196,6 +196,8 @@
         position: absolute;
         bottom: 5px;
         width: 100%;
+        padding: 0 5px;
+        box-sizing: border-box;
     }
 
     /* Nadirlik renkleri */
@@ -398,13 +400,6 @@
     .inventory-item:hover {
         transform: translateY(-5px);
         box-shadow: 0 5px 15px rgba(138, 43, 226, 0.5);
-    }
-
-    .inventory-item img {
-      width: 70px;
-      height: 70px;
-      object-fit: contain;
-      margin-bottom: 3px;
     }
 
     .inventory-item-name {
@@ -759,7 +754,7 @@
     }
     #mainMenuModal .menu-options {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 15px;
     }
     #mainMenuModal .menu-options button {
@@ -790,11 +785,15 @@
     .menu-icon {
         width: 36px;
         height: 36px;
+        pointer-events: none;
     }
     .menu-icon svg {
         width: 100%;
         height: 100%;
         fill: white;
+    }
+    .menu-text {
+        pointer-events: none; /* DİL GÜNCELLEMESİ İÇİN DÜZELTME */
     }
     .notification-dot {
         position: absolute;
@@ -1010,7 +1009,6 @@
     .daily-reward-item .reward-preview img {
         width: 60px;
         height: 60px;
-        object-fit: contain;
     }
     .daily-reward-item .reward-preview span {
         font-size: 24px;
@@ -1021,11 +1019,6 @@
         font-size: 12px;
         margin-top: 8px;
         text-align: center;
-    }
-    #claimDailyRewardBtn {
-        margin-top: 25px;
-        padding: 12px 25px;
-        font-size: 18px;
     }
 
     /* CS Path Modal Styles */
@@ -1270,17 +1263,15 @@
     @media (max-width: 768px) {
       h1 { font-size: 32px; }
       #current-time { font-size: 20px; }
-      #stats { flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 16px; }
+      #stats { gap: 15px; font-size: 16px; }
       #case { max-width: 90%; }
       .item { min-width: 90px; height: 90px; margin: 5px; }
-      .item img { width: 60px; height: 60px; }
       .item-name { font-size: 12px; }
       #openBtn { padding: 12px 25px; font-size: 18px; }
       #result { font-size: 20px; }
       #errorMessage { font-size: 16px; }
       .modal-content h2, .modal-content h3 { font-size: 24px; }
       .inventory-item { width: 80px; height: 80px; }
-      .inventory-item img { width: 50px; height: 50px; }
       .inventory-item-name { font-size: 9px; }
       .boost-item { width: 120px; height: 100px; padding: 8px; }
       .boost-item .boost-name { font-size: 14px; }
@@ -1313,14 +1304,12 @@
       #stats { width: 90%; }
       #case { border-radius: 10px; }
       .item { min-width: 70px; height: 70px; margin: 4px; font-size: 10px; }
-      .item img { width: 45px; height: 45px; }
       .item-name { font-size: 10px; }
       #openBtn { padding: 10px 20px; font-size: 16px; }
       #result { font-size: 18px; }
       #errorMessage { font-size: 14px; }
       .modal-content h2, .modal-content h3 { font-size: 20px; }
       .inventory-item { width: 70px; height: 70px; margin: 8px; }
-      .inventory-item img { width: 40px; height: 40px; }
       .boost-item { width: 100px; height: 90px; padding: 5px; }
       .boost-item .boost-name { font-size: 12px; }
       .boost-item .boost-description { font-size: 9px; }
@@ -1394,63 +1383,65 @@
   </div>
   <div id="result"></div>
   <div id="errorMessage"></div>
-
-  <audio id="openSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3" preload="auto"></audio>
-  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
-  <audio id="claimSound" src="https://assets.mixkit.co/sfx/preview/mixkit-video-game-treasure-2066.mp3" preload="auto"></audio>
+  
+  <!-- YENİ TELİFSİZ SESLER -->
+  <audio id="openSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_73138b32f1.mp3" preload="auto"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/audio/2022/11/22/audio_74c8f2b1d3.mp3" preload="auto"></audio>
+  <audio id="claimSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c898992a40.mp3" preload="auto"></audio>
 
   <div id="mainMenuModal" class="modal-overlay">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal('mainMenuModal')">&times;</button>
       <h2 data-lang-key="mainMenuTitle">Ana Menü</h2>
       <div class="menu-options">
-        <button onclick="openModal('csPathModal')" data-lang-key="csPathBtn">
+        <button onclick="openModal('csPathModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-5h16V6H4v2z"/></svg></span>
-            <span data-lang-key="csPathBtn">CS Yolu</span>
+            <span class="menu-text" data-lang-key="csPathBtn">CS Yolu</span>
         </button>
-        <button onclick="openModal('dailyRewardModal')" id="dailyRewardsMenuBtn" data-lang-key="dailyRewardsBtn">
+        <button onclick="openModal('dailyRewardModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3c0 .35.07.69.18 1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-2h4a1 1 0 0 1 1 1 1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm8 16H4V8h16v12z"/></svg></span>
-            <span data-lang-key="dailyRewardsBtn">Günlük Ödüller</span>
+            <span class="menu-text" data-lang-key="dailyRewardsBtn">Günlük</span>
+            <div id="dailyRewardsMenuBtn"></div><!-- Notification dot attaches here -->
         </button>
-        <button onclick="openModal('inventoryModal')" data-lang-key="inventoryBtn">
+        <button onclick="openModal('inventoryModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-3.18C16.3 4.24 14.36 3 12 3s-4.3 1.24-4.82 3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></span>
-            <span data-lang-key="inventoryBtn">Envanter</span>
+            <span class="menu-text" data-lang-key="inventoryBtn">Envanter</span>
         </button>
-        <button onclick="openModal('boostShopModal')" data-lang-key="boostShopBtn">
+        <button onclick="openModal('boostShopModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.1.17H16.8l2.92-5.04-1.55-.89L16.8 11H8.53L4.27 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/></svg></span>
-            <span data-lang-key="boostShopBtn">Boost Mağazası</span>
+            <span class="menu-text" data-lang-key="boostShopBtn">Boost Mağazası</span>
         </button>
-        <button onclick="openModal('achievementsModal')" data-lang-key="achievementsBtn">
+        <button onclick="openModal('achievementsModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
-            <span data-lang-key="achievementsBtn">Başarımlar</span>
+            <span class="menu-text" data-lang-key="achievementsBtn">Başarımlar</span>
         </button>
-         <button onclick="openModal('collectionModal')" data-lang-key="collectionBtn">
+         <button onclick="openModal('collectionModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg></span>
-            <span data-lang-key="collectionBtn">Koleksiyon</span>
+            <span class="menu-text" data-lang-key="collectionBtn">Koleksiyon</span>
         </button>
-        <button onclick="openModal('probabilityModal')" data-lang-key="probabilityBtn">
+        <button onclick="openModal('probabilityModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.99 2h2v2h-2V5zm-3 0h2v2h-2V5zm-3 0h2v2H8V5zM7 19H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5V8h2v2zm3 6H8v-2h2v2zm0-3H8v-2h2v2zm0-3H8v-2h2v2zm0-3H8V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2v-2h2v2zm3 3h-2v-2h2v2z"/></svg></span>
-            <span data-lang-key="probabilityBtn">Şans Tablosu</span>
+            <span class="menu-text" data-lang-key="probabilityBtn">Şans Tablosu</span>
         </button>
-        <button onclick="openModal('autoSellModal')" data-lang-key="autoSellSettingsBtn">
+        <button onclick="openModal('autoSellModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4zm-2-4h8v2H8z"/></svg></span>
-            <span data-lang-key="autoSellSettingsBtn">Oto-Sat</span>
+            <span class="menu-text" data-lang-key="autoSellSettingsBtn">Oto-Sat</span>
         </button>
-        <button onclick="openModal('autoOpenModal')" data-lang-key="autoOpenBtn">
-            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></span>
-            <span data-lang-key="autoOpenBtn">Oto-Aç</span>
+        <button onclick="openModal('autoOpenModal')">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></span>
+            <span class="menu-text" data-lang-key="autoOpenBtn">Oto-Aç</span>
         </button>
-        <button onclick="openModal('versionPatchesModal')" data-lang-key="versionPatchesBtn">
+        <button onclick="openModal('versionPatchesModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span>
-            <span data-lang-key="versionPatchesBtn">Yamalar</span>
+            <span class="menu-text" data-lang-key="versionPatchesBtn">Yamalar</span>
         </button>
-        <button onclick="openModal('languageSelectModal')" data-lang-key="languageBtn">
+        <button onclick="openModal('languageSelectModal')">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
-            <span data-lang-key="languageBtn">Dil</span>
+            <span class="menu-text" data-lang-key="languageBtn">Dil</span>
         </button>
-        <button onclick="resetGameAndConfirm()" data-lang-key="resetGameBtn">
+        <button onclick="resetGameAndConfirm()">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></span>
-            <span data-lang-key="resetGameBtn">Sıfırla</span>
+            <span class="menu-text" data-lang-key="resetGameBtn">Sıfırla</span>
         </button>
       </div>
     </div>
@@ -1695,24 +1686,30 @@
       tr: { loading: "Yükleniyor...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kasa Açma Simülasyonu MK", balance: "Bakiye:", caseCost: "Kasa Maliyeti:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Ana Menü", inventoryBtn: "Envanter", boostShopBtn: "Boost Mağazası", achievementsBtn: "Başarımlar", autoSellSettingsBtn: "Oto-Sat", autoOpenBtn: "Oto-Aç", versionPatchesBtn: "Yamalar", languageBtn: "Dil", resetGameBtn: "Sıfırla", dailyRewardsBtn: "Günlük", csPathBtn: "CS Yolu", inventoryTitle: "Envanterin", allRarities: "Tüm Nadirlikler", commonRarity: "Sıradan", rareRarity: "Nadir", epicRarity: "Destansı", legendaryRarity: "Efsanevi", exoticRarity: "Egzotik", ancientRarity: "Kadim", immortalRarity: "Ölümsüz", allTypes: "Tüm Türler", itemType: "Eşyalar", boostType: "Boostlar", filterBtn: "Filtrele", sellAllFilteredBtn: "Filtrelenenleri Sat", noItemsMessage: "Envanterin boş. Bir kasa aç ve eşya kazan!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Şu anda satın alınabilecek boost yok.", achievementsTitle: "Başarımlar", noAchievementsMessage: "Henüz başarım tanımlanmamış.", sellBtn: "Sat", favoriteBtn: "Favorile ⭐", unfavoriteBtn: "Favoriden Çıkar ⭐", closeBtn: "Kapat", autoSellSettingsTitle: "Otomatik Sat Ayarları", autoSellDescription: "Açtığın eşyaların, seçtiğin nadirlikteki olanları otomatik olarak satılacaktır.", saveSettingsBtn: "Ayarları Kaydet", autoOpenTitle: "Otomatik Kasa Aç", startBtn: "Başlat", stopBtn: "Durdur", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçenekleri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", youWon: "Kazandın:", notEnoughBalance: "Yetersiz bakiye! Kasa açmak için {cost}$'a ihtiyacın var.", autoSellStoppedBalance: "Yetersiz bakiye! Otomatik kasa açma durduruldu.", itemSoldAuto: "(Otomatik Satıldı)", itemSold: "{item} {price}$ karşılığında satıldı!", itemNotFound: "HATA: Eşya envanterde bulunamadı!", boostCannotBeSold: "Boost eşyaları satılamaz!", cannotSellFavorite: "Favori bir eşyayı satamazsın! Önce favorilerden çıkar.", boostAlreadyOwned: "Bu boost'a zaten sahipsin!", boostPurchased: "{boostName} başarıyla satın alındı! Boost aktif!", achievementCompleted: "BAŞARIM AÇILDI", achievementRewardBalance: "{amount}$ kazandın!", achievementRewardBoost: "{boostName} boost'unu kazandın ve aktif edildi!", achievementBoostAlreadyOwned: "{boostName} boost'una zaten sahipsin.", unknownBoostReward: "Bilinmeyen bir boost ödülü!", autoSellStatusOff: "Otomatik satma kapalı.", autoSellStatusOn: "Otomatik satılacak nadirlikler: {rarities}", autoOpenMinAchievements: "Otomatik kasa açma için en az 5 başarım tamamlamalısın! Şu an {count} başarım tamamlandı.", autoOpenStopped: "Otomatik kasa açma durduruldu.", gameSavedError: "Oyun verileri kaydedilirken bir hata oluştu.", gameLoadedError: "Kayıtlı oyun yüklenirken hata oluştu. Yeni oyun başlatıldı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} eşya {value}$ karşılığında satıldı!", noFilteredItemsToSell: "Satılacak filtrelenmiş eşya bulunamadı veya hepsi favori/boost.", confirmResetGame: "Tüm oyun verilerini sıfırlamak istediğine emin misin? Bu işlem geri alınamaz!", favoriteAdded: "{item} favorilere eklendi!", favoriteRemoved: "{item} favorilerden çıkarıldı!", itemLoadError: "Hata: Eşya yüklenemedi", dailyRewardsTitle: "Günlük Ödüller", dailyRewardDesc: "Her gün giriş yaparak özel bir ödül kazan!", dailyRewardClaimed: "{day}. Gün ödülü alındı!", dailyRewardAlreadyClaimed: "Bugünün ödülü zaten alındı. Yarın tekrar gel!", dailyRewardNotReady: "Bugünün ödülü henüz hazır değil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açarak XP kazan ve yolda ilerleyerek ödülleri topla!", tier: "Kademe", xpUnit: "XP", reward: "Ödül", csPathRewardClaimed: "{tier}. Kademe ödülü alındı!", dailyCaseLimitReached: "Günlük kasa açma limitine ({limit}) ulaşıldı. Yarın tekrar gel!", inProgressAchievement: "Devam Ediyor", sellLastBtn: "Son Eşyayı Sat", noSellableItem: "Envanterde satılabilir eşya yok!", mute: "Sesi Kapat", unmute: "Sesi Aç",
       collectionBtn: "Koleksiyon", probabilityBtn: "Şans Tablosu", welcomeTitle: "Oyuna Hoş Geldin!", enterUsernamePrompt: "Lütfen bir kullanıcı adı girerek başla.", usernameInputPlaceholder: "Kullanıcı adını gir...", saveUsernameBtn: "Kaydet ve Başla", adminPanelTitle: "Admin Paneli", adminAddBalance: "Bakiye Ekle", adminAddXp: "XP Ekle", adminAddItem: "Eşya Ekle", adminAddBtn: "Ekle", collectionTitle: "Koleksiyon", collectionProgress: "İlerleme:", probabilityTitle: "Şans Tablosu", probabilityDesc: "Bunlar, mevcut boostlarınla birlikte güncel eşya düşürme oranlarıdır.", rarityHeader: "Nadirlik", chanceHeader: "Şans", globalAnnouncement: "Tebrikler {username}, bir {itemName} kazandı!", allItemsCollected: "Tebrikler! Tüm eşyaları topladın!", immortalFinder: "Ölümsüz", immortalFinderDesc: "Ölümsüz bir eşya elde et.", richMan: "Zengin", richManDesc: "1.000.000$ bakiyeye ulaş.", allBoosts: "Güçlendirici", allBoostsDesc: "Mevcut tüm boostları satın al."
       },
-      // Diğer diller de benzer şekilde güncellenebilir...
     };
 
     const patchNotesData = [
+      // YENİ: V2.0.1 Yama notu eklendi
+      { 
+        version: "V2.0.1", 
+        text: { 
+          en: "Fixed a critical bug that could cause game progress to be reset when changing the language. Added missing translation for the 'Unfavorite' button. The case opening spinner animation logic has been reviewed and optimized for smoother performance.", 
+          tr: "Dil değiştirildiğinde oyun ilerlemesinin sıfırlanmasına neden olabilen kritik bir hata düzeltildi. 'Favoriden Çıkar' butonu için eksik çeviri eklendi. Kasa açma animasyon mantığı incelendi ve daha akıcı bir performans için optimize edildi."
+        }
+      },
+      { version: "V2.0.0", text: { en: "Bug fixes! Spinner and language translation systems are now working correctly. Replaced all sounds and images with royalty-free, custom-generated assets.", tr: "Hata düzeltmeleri! Çark ve dil çeviri sistemleri artık doğru çalışıyor. Tüm sesler ve resimler telifsiz, özel olarak üretilmiş varlıklarla değiştirildi."}},
       { version: "V1.9.0", text: { en: "Added mandatory username, global announcement system for rare drops, item collection, probability table, and a secret admin panel (Ctrl+Alt+A).", tr: "Zorunlu kullanıcı adı, nadir eşyalar için duyuru sistemi, eşya koleksiyonu, şans tablosu ve gizli bir admin paneli (Ctrl+Alt+A) eklendi."}},
       { version: "V1.8.1", text: { en: "Replaced all emojis with SVG icons for a cleaner interface. Fixed a bug where patch notes were not displaying.", tr: "Daha temiz bir arayüz için tüm emojiler SVG ikonlarla değiştirildi. Yama notlarının görüntülenmemesine neden olan bir hata düzeltildi."}},
-      { version: "V1.8.0", text: { en: "Added a stylish achievement toast notification, utility buttons (Sell Last, Mute), and new achievements for long-term goals.", tr: "Şık bir başarım bildirimi, yardımcı butonlar (Son Eşyayı Sat, Sesi Kapat) ve uzun vadeli hedefler için yeni başarımlar eklendi."} },
-      { version: "V1.7.0", text: { en: "Major update! Daily Rewards and CS Path progression systems added. Three new languages (Russian, Japanese, Korean) and a daily case opening limit implemented.", tr: "Büyük güncelleme! Günlük Ödüller ve CS Yolu ilerleme sistemleri eklendi. Üç yeni dil (Rusça, Japonca, Korece) ve günlük kasa açma limiti getirildi."} },
     ];
     
     const itemsData = [
-      { id: "item_0", name: { en: "Common Knife", tr: "Sıradan Bıçak", ru:"Обычный нож", ja:"コモンナイフ", ko:"일반 칼"}, rarity: "common", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451a6659a0b16a246a/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_1", name: { en: "Rare Sword", tr: "Nadir Kılıç", ru:"Редкий меч", ja:"レアソード", ko:"희귀한 검"}, rarity: "rare", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451a9568770d2b67e7/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_2", name: { en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi", ru:"Эпический коготь дракона", ja:"エピックドラゴンクロー", ko:"에픽 드래곤 클로"}, rarity: "epic", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451ac2a281057c7901/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_3", name: { en: "Legendary Shield", tr: "Efsanevi Kalkan", ru:"Легендарный щит", ja:"レジェンダリーシールド", ko:"전설의 방패"}, rarity: "legendary", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b2f63f253b341f2/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_12", name: { en: "Exotic Gauntlets", tr: "Exotic Eldivenler", ru:"Экзотические рукавицы", ja:"エキゾチックガントレット", ko:"이국적인 건틀릿"}, rarity: "exotic", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b6a7a72c478a0f9/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_13", name: { en: "Ancient Soul Render", tr: "Kadim Ruh Keser", ru:"Древний потрошитель душ", ja:"エンシェントソウルレンダー", ko:"고대 영혼 절단기"}, rarity: "ancient", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b9d40902c1f9d45/view?project=654519f71607594a953e&mode=admin" },
-      { id: "item_14", name: { en: "Immortal Spear", tr: "Ölümsüz Mızrak", ru:"Бессмертное копье", ja:"イモータルスピアー", ko:"불멸의 창"}, rarity: "immortal", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451be8c5c77a83e020/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_0", type: "knife", name: { en: "Common Knife", tr: "Sıradan Bıçak"}, rarity: "common"},
+      { id: "item_1", type: "sword", name: { en: "Rare Sword", tr: "Nadir Kılıç"}, rarity: "rare"},
+      { id: "item_2", type: "claw", name: { en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi"}, rarity: "epic"},
+      { id: "item_3", type: "shield", name: { en: "Legendary Shield", tr: "Efsanevi Kalkan"}, rarity: "legendary"},
+      { id: "item_12", type: "gauntlet", name: { en: "Exotic Gauntlets", tr: "Egzotik Eldivenler"}, rarity: "exotic"},
+      { id: "item_13", type: "axe", name: { en: "Ancient Soul Render", tr: "Kadim Ruh Keser"}, rarity: "ancient"},
+      { id: "item_14", type: "spear", name: { en: "Immortal Spear", tr: "Ölümsüz Mızrak"}, rarity: "immortal" },
     ];
     
     const boostsData = [
@@ -1730,7 +1727,6 @@
         { id: "millionaire", name: { en: "Millionaire", tr: "Milyoner" }, description: { en: "Earn a total of 10,000$.", tr: "Toplam 10,000$ kazan." }, target: { totalMoneyEarned: 10000 }, reward: { type: "balance", amount: 2000 } },
         { id: "merchant", name: { en: "Merchant", tr: "Tüccar" }, description: { en: "Sell 10 items.", tr: "10 eşya sat." }, target: { itemsSold: 10 }, reward: { type: "xp", amount: 100 } },
         { id: "collector", name: { en: "Collector", tr: "Koleksiyoncu" }, description: { en: "Have 20 different items in your inventory.", tr: "Envanterinde 20 farklı eşya bulundur." }, target: { inventoryCount: 20 }, reward: { type: "balance", amount: 500 } },
-        // YENİ BAŞARIMLAR
         { id: "immortal_finder", name: { en: "Immortal", tr: "Ölümsüz" }, description: { en: "Obtain an immortal item.", tr: "Ölümsüz bir eşya elde et." }, target: { hasRarity: "immortal" }, reward: { type: "balance", amount: 10000 } },
         { id: "rich_man", name: { en: "Rich Man", tr: "Zengin" }, description: { en: "Reach a balance of 1,000,000$.", tr: "1.000.000$ bakiyeye ulaş." }, target: { balance: 1000000 }, reward: { type: "xp", amount: 5000 } },
         { id: "all_boosts", name: { en: "Booster", tr: "Güçlendirici" }, description: { en: "Purchase all available boosts.", tr: "Mevcut tüm boostları satın al." }, target: { allBoosts: true }, reward: { type: "balance", amount: 2500 } },
@@ -1799,7 +1795,7 @@
         achievementToast: document.getElementById("achievement-toast"),
         toastTitle: document.getElementById("toast-title"),
         toastDesc: document.getElementById("toast-desc"),
-        // YENİ DOM ELEMENTLERİ
+        caseContainer: document.getElementById("case"),
         usernameModal: document.getElementById("usernameModal"),
         usernameInput: document.getElementById("usernameInput"),
         saveUsernameBtn: document.getElementById("saveUsernameBtn"),
@@ -1808,7 +1804,6 @@
         collectionProgress: document.getElementById("collection-progress"),
         probabilityTableBody: document.querySelector("#probability-table tbody"),
         adminItemSelect: document.getElementById("adminItem"),
-        caseContainer: document.getElementById("case"),
     };
 
     const sfx = {
@@ -1830,10 +1825,39 @@
     const DAILY_CASE_LIMIT = 5000;
     const XP_PER_CASE = 10;
     const raritySellPrices = { common: 10, rare: 50, epic: 200, legendary: 1000, exotic: 5000, ancient: 15000, immortal: 50000 };
-    const rarityColors = { common: '#555', rare: '#4299e1', epic: '#805ad5', legendary: '#ed8936', exotic: '#cbd5e0', ancient: '#f56565', immortal: '#ecc94b' };
+    const rarityColors = { common: '#A9A9A9', rare: '#4299e1', epic: '#805ad5', legendary: '#ed8936', exotic: '#F0E68C', ancient: '#e53e3e', immortal: '#FFD700' };
     const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4, exotic: 5, ancient: 6, immortal: 7 };
     let rarityWeights, baseRarityWeights = { common: 0.60, rare: 0.25, epic: 0.10, legendary: 0.03, exotic: 0.01, ancient: 0.005, immortal: 0.005 };
     const ADMIN_PASSWORD = "admin123";
+
+    function getSVGDataURI(svgString) {
+        return 'data:image/svg+xml;base64,' + btoa(svgString);
+    }
+    
+    function generateItemSVG(rarity, itemType) {
+        const color = rarityColors[rarity] || '#ffffff';
+        const glow = rarityOrder[rarity] >= rarityOrder.legendary;
+        let shape;
+
+        switch(itemType) {
+            case 'knife': shape = `<path d="M20 4L5 19l-1-1L19 3z M5 19l-2 2 3 3 2-2z" stroke-width="2" stroke="${color}" fill="none"/>`; break;
+            case 'sword': shape = `<path d="M21 3L3 21h-2v-2L19 1h2v2z M5 16L2 19" stroke-width="2" stroke="${color}" fill="none"/>`; break;
+            case 'shield': shape = `<path d="M12 2L4 5v6c0 5.55 3.58 10.4 8 11.92 4.42-1.52 8-6.37 8-11.92V5l-8-3z" stroke-width="2" stroke="${color}" fill="${color}40"/>`; break;
+            case 'claw': shape = `<path d="M10 3L4 9 9 14l-2 5 5-2 5-5L12 7z" stroke-width="2" stroke="${color}" fill="${color}60"/> <path d="M15 4l5 5" stroke-width="2" stroke="${color}" fill="none"/>`; break;
+            case 'gauntlet': shape = `<path d="M18 8V4H8v12h4v4h6v-8h-6V8h6z" stroke-width="2" stroke="${color}" fill="${color}20"/>`; break;
+            case 'axe': shape = `<path d="M12 2l10 10-2 2-8-8-8 8-2-2L12 2z M4 14v8h2v-6l2-2" stroke-width="2" stroke="${color}" fill="${color}50"/>`; break;
+            case 'spear': shape = `<path d="M12 2l4 8h-8z M12 10v12" stroke-width="2" stroke="${color}" fill="${color}60"/>`; break;
+            default: shape = `<circle cx="12" cy="12" r="10" stroke-width="2" stroke="${color}" fill="none"/>`;
+        }
+
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100" height="100">
+                ${glow ? `<filter id="glow"><feGaussianBlur stdDeviation="1.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : ''}
+                <g ${glow ? `filter="url(#glow)"` : ''}>${shape}</g>
+            </svg>
+        `;
+        return getSVGDataURI(svg);
+    }
 
     function translateText(key, replacements = {}) {
         let text = (translations[currentLang]?.[key]) || (translations['tr']?.[key]) || key;
@@ -1859,8 +1883,8 @@
             languageSelectModal: updateLanguageButtons,
             dailyRewardModal: updateDailyRewardsUI,
             csPathModal: updateCsPathUI,
-            collectionModal: renderCollection, // Yeni
-            probabilityModal: renderProbabilityTable, // Yeni
+            collectionModal: renderCollection, 
+            probabilityModal: renderProbabilityTable,
         };
         modalActions[modalId]?.();
     }
@@ -1917,7 +1941,6 @@
         
         const wonItemData = getRandomItemByRarity(); 
         
-        // --- DÜZELTİLMİŞ ANİMASYON MANTIĞI ---
         dom.items.innerHTML = '';
         dom.items.style.transition = "none";
         dom.items.style.transform = "translateX(0)";
@@ -1930,15 +1953,18 @@
             dom.items.appendChild(createItemElement(item));
         }
 
-        // Hesaplamalar için ilk elemanın tam genişliğini al
         const itemFullWidth = dom.items.children[0].offsetWidth + (parseFloat(getComputedStyle(dom.items.children[0]).marginLeft) * 2);
+        // DEĞİŞİKLİK: Spinner (çark) hesaplamasının daha anlaşılır olması için yorum eklendi.
+        // Hesaplama: Kazanan öğeyi (winIndex) tam olarak ortadaki seçicinin altına getirmek için gereken kaydırma miktarı.
+        // (winIndex * itemFullWidth): Kazanan öğenin başlangıcına kadar olan mesafe.
+        // - (dom.caseContainer.offsetWidth / 2): Kasanın yarısını çıkararak öğenin başlangıcını kasanın ortasına getirir.
+        // + (itemFullWidth / 2): Öğenin kendi genişliğinin yarısını ekleyerek öğenin tam ortasını kasanın ortasına hizalar.
         const scrollAmount = (winIndex * itemFullWidth) - (dom.caseContainer.offsetWidth / 2) + (itemFullWidth / 2);
 
         dom.items.style.transition = `transform 3.5s cubic-bezier(0.25, 1, 0.5, 1)`;
         dom.items.style.transform = `translateX(-${scrollAmount}px)`;
         
         await new Promise(resolve => setTimeout(resolve, 3550));
-        // --- ANİMASYON MANTIĞI SONU ---
 
         dom.items.children[winIndex].classList.add('highlighted');
         const wonItemName = getTranslatedTextFromObject(wonItemData.name);
@@ -1947,7 +1973,7 @@
 
         playerStats.xp += XP_PER_CASE;
         playerStats.raritiesWon[wonItemData.rarity] = true;
-        playerStats.collection[wonItemData.id] = true; // Koleksiyona ekle
+        playerStats.collection[wonItemData.id] = true; 
 
         if (rarityOrder[wonItemData.rarity] >= rarityOrder.legendary) {
             showGlobalAnnouncement(playerStats.username, wonItemData);
@@ -1983,7 +2009,7 @@
             }
         }
         el.innerHTML = `
-            <img src="${itemData.img}" alt="${getTranslatedTextFromObject(itemData.name)}" loading="lazy">
+            <img src="${generateItemSVG(itemData.rarity, itemData.type)}" alt="${getTranslatedTextFromObject(itemData.name)}" loading="lazy">
             <div class="item-name">${getTranslatedTextFromObject(itemData.name)}</div>
         `;
         return el;
@@ -1996,7 +2022,7 @@
         el.className = itemClass + (item.isFavorite ? ' favorite' : '');
         el.dataset.itemId = item.id;
         el.innerHTML = `
-            <img src="${item.img}" alt="${itemName}">
+            <img src="${generateItemSVG(item.rarity, item.type)}" alt="${itemName}">
             <div class="item-name inventory-item-name">${itemName}</div>
             ${item.isFavorite ? '<span class="favorite-star">⭐</span>' : ''}
         `;
@@ -2114,7 +2140,7 @@
             else if (reward.type === 'xp') previewHTML = `<span style="color:#8a2be2;">${reward.amount}XP</span>`;
             else if (reward.type === 'item') {
                 const item = itemsData.find(i => i.id === reward.itemId);
-                if (item) previewHTML = `<img src="${item.img}" alt="${getTranslatedTextFromObject(item.name)}">`;
+                if (item) previewHTML = `<img src="${generateItemSVG(item.rarity, item.type)}" alt="${getTranslatedTextFromObject(item.name)}">`;
             } else if (reward.type === 'boost') {
                 const boost = boostsData.find(b => b.id === reward.boostId);
                 if(boost) previewHTML = `<div style="font-size:20px; color:#00ffff;">${getTranslatedTextFromObject(boost.name)}</div>`;
@@ -2288,7 +2314,7 @@
     }
     
     function initializeGame(isReset = false) {
-         currentLang = localStorage.getItem('gameData_v5') || 'tr';
+         currentLang = localStorage.getItem('gameLang') || 'tr'; // Ayrı bir anahtar kullanılıyor
          currentBalance = 1000;
          inventory = [];
          nextItemId = 0;
@@ -2306,21 +2332,23 @@
     function saveGameData() {
         try {
             const data = {
-                lang: currentLang, balance: currentBalance, inventory, nextItemId, playerStats, autoSellRarities,
+                balance: currentBalance, inventory, nextItemId, playerStats, autoSellRarities,
             };
             localStorage.setItem('gameData_v5', JSON.stringify(data));
+            localStorage.setItem('gameLang', currentLang); // Dili ayrı kaydet
         } catch (e) { showErrorMessage("gameSavedError"); }
     }
 
     function loadGameData() {
         try {
             const savedData = localStorage.getItem('gameData_v5');
+            currentLang = localStorage.getItem('gameLang') || 'tr'; // Önce dili yükle
+
             if (!savedData) { initializeGame(); checkUsername(); return; }
             const data = JSON.parse(savedData);
             
             const defaultStats = { username: null, collection: {}, caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
             
-            currentLang = data.lang ?? 'tr';
             currentBalance = data.balance ?? 1000;
             inventory = data.inventory ?? [];
             nextItemId = data.nextItemId ?? 0;
@@ -2337,39 +2365,31 @@
         }
     }
     
-    function setLanguage(lang) { 
+    function setLanguage(lang) {
         currentLang = lang;
-        localStorage.setItem('gameLanguage_v5', lang);
+        // DEĞİŞİKLİK: Bu satır oyunun sıfırlanmasına neden oluyordu, saveGameData() ile değiştirildi.
+        saveGameData(); 
         document.documentElement.lang = lang.split('-')[0];
+
         document.querySelectorAll('[data-lang-key]').forEach(element => {
             const key = element.dataset.langKey;
-            
-            // Placeholder'ları güncelle
+
             if (element.hasAttribute('placeholder')) {
                 const placeholderKey = `${element.id}Placeholder`;
-                element.placeholder = translateText(placeholderKey);
+                element.placeholder = translateText(placeholderKey, { '...': '...' });
+                return; 
             }
             
-            // İçerik metnini güncelle
-            const balanceSpan = element.querySelector('#balance-amount');
-            const costSpan = element.querySelector('#cost-amount');
-            const xpSpan = element.querySelector('#xp-amount');
-
-            if (balanceSpan || costSpan || xpSpan) {
-                element.firstChild.textContent = translateText(key) + ' ';
-            } else {
-                 if (element.children.length === 0 || (element.children.length === 1 && element.children[0].tagName === 'SPAN' && element.children[0].classList.contains("menu-icon"))) {
-                     if (element.children.length === 1 && element.children[0].tagName === 'SPAN' && element.children[0].classList.contains("menu-icon")) {
-                        const icon = element.querySelector('.menu-icon');
-                        element.textContent = '';
-                        element.appendChild(icon);
-                        element.appendChild(document.createTextNode(" " + translateText(key)));
-                     } else {
-                        element.textContent = translateText(key);
-                     }
-                 }
+            const firstChild = element.firstChild;
+            if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+                firstChild.textContent = translateText(key) + (element.id.includes('-cost') || element.id.includes('balance') || element.id.includes('-xp') ? ' ' : '');
+            } else if (element.classList.contains('menu-text')) {
+                element.textContent = translateText(key);
+            } else if (!element.querySelector('[data-lang-key]')) { 
+                element.textContent = translateText(key);
             }
         });
+
         updateLanguageButtons();
         updateUI();
         renderAchievements();
@@ -2428,7 +2448,6 @@
         });
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (event) => {
-                // Kullanıcı adı modalı hariç diğerleri dışarı tıklamayla kapanabilir
                 if (event.target === overlay && overlay.id !== 'usernameModal') {
                      closeModal(overlay.id);
                 }
@@ -2455,7 +2474,7 @@
         currentModalItem = item; 
         const itemName = getTranslatedTextFromObject(item.name);
         dom.modalItemName.textContent = itemName;
-        dom.modalItemImage.src = item.img || '';
+        dom.modalItemImage.src = generateItemSVG(item.rarity, item.type);
         dom.modalItemImage.style.borderColor = rarityColors[item.rarity];
         dom.modalItemImage.style.boxShadow = `0 0 15px ${rarityColors[item.rarity]}`;
         dom.modalItemRarity.textContent = translateText(`${item.rarity}Rarity`);
@@ -2645,7 +2664,9 @@
 
     function resetGameAndConfirm() { 
         if (confirm(translateText("confirmResetGame"))) {
-             initializeGame(true);
+            localStorage.removeItem('gameData_v5');
+            localStorage.removeItem('gameLang');
+            initializeGame(true);
         }
     }
 
@@ -2675,8 +2696,6 @@
         dom.muteIconContainer.innerHTML = playerStats.isMuted ? svgIcons.volumeOff : svgIcons.volumeOn;
         if(!initializing) saveGameData();
     }
-
-    // --- YENİ EKLENEN FONKSİYONLAR ---
 
     function checkUsername() {
         if (!playerStats.username) {
@@ -2730,7 +2749,7 @@
     }
 
     function handleAdminPanelKey(event) {
-        if (event.ctrlKey && event.altKey && event.key === 'a') {
+        if (event.ctrlKey && event.altKey && (event.key === 'a' || event.key === 'A')) {
             event.preventDefault();
             const password = prompt("Admin şifresini girin:");
             if (password === ADMIN_PASSWORD) {
