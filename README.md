@@ -46,4 +46,4 @@ Bu layihə CS:GO tərzi qutu açma simulyatorudur. Qutuları aç, əşyalar qaza
 ## 📁 Kurulum / Installation
 
 ```bash
-git clone https://github.com/kullaniciadi/csgo-kasa-simulasyonu.git](https://github.com/kaan408/my-website.git
+git clone https://github.com/kaan408/my-website.git
