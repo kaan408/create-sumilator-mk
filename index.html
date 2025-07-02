@@ -68,9 +68,35 @@
       padding: 20px;
       box-sizing: border-box;
     }
+    
+    /* YENİ: Global Duyuru Sistemi */
+    #global-announcement {
+        position: fixed;
+        top: -100px; /* Başlangıçta ekranın dışında */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 600px;
+        background: linear-gradient(45deg, gold, orange);
+        color: #1a1a1a;
+        text-align: center;
+        padding: 10px;
+        border-radius: 0 0 15px 15px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 5px 20px rgba(255, 215, 0, 0.5);
+        transition: top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+    }
+    #global-announcement.show {
+        top: 0;
+    }
 
     h1 {
       margin-bottom: 20px;
+      margin-top: 50px; /* Duyuru çubuğu için yer aç */
       font-size: 40px;
       background: linear-gradient(45deg, #00ffff, #8a2be2);
       -webkit-background-clip: text;
@@ -134,7 +160,7 @@
       font-weight: bold;
       border-radius: 10px;
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
-      transition: transform 0.3s, box-shadow 0.3s;
+      transition: transform 0.3s, box-shadow 0.3s, filter 0.3s;
       text-align: center;
       padding: 5px;
       box-sizing: border-box;
@@ -156,6 +182,7 @@
       object-fit: contain;
       margin-bottom: 5px;
       filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+      transition: filter 0.3s;
     }
 
     .item.highlighted {
@@ -728,7 +755,7 @@
 
     /* YENİLENMİŞ MENÜ STİLLERİ */
     #mainMenuModal .modal-content {
-        max-width: 450px;
+        max-width: 550px; /* Genişletildi */
     }
     #mainMenuModal .menu-options {
         display: grid;
@@ -1149,6 +1176,96 @@
       box-shadow: none;
     }
     
+    /* YENİ: Koleksiyon Stilleri */
+    #collectionModal .modal-content {
+        max-width: 900px;
+    }
+    #collection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    .collection-item {
+        opacity: 0.4;
+        filter: grayscale(80%);
+    }
+    .collection-item.found {
+        opacity: 1;
+        filter: grayscale(0%);
+    }
+    #collection-progress {
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    /* YENİ: Şans Tablosu Stilleri */
+    #probabilityModal .modal-content {
+        max-width: 500px;
+    }
+    #probability-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    #probability-table th, #probability-table td {
+        padding: 12px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        text-align: left;
+    }
+    #probability-table th {
+        background-color: rgba(0, 255, 255, 0.1);
+        font-family: 'Orbitron', sans-serif;
+    }
+    #probability-table td:last-child {
+        font-weight: bold;
+        color: #00ff99;
+    }
+    
+    /* YENİ: Admin Panel ve Kullanıcı Adı Modal stilleri */
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        width: 100%;
+    }
+    .form-group label {
+        font-size: 16px;
+        color: #00ffff;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid #00ffff;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+    .form-group button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(45deg, #00ff99, #00ccff);
+        color: white;
+        transition: all 0.2s ease;
+        align-self: flex-end; /* Butonu sağa yasla */
+    }
+    .form-group button:hover {
+        transform: translateY(-2px);
+    }
+    #usernameModal {
+        background-color: rgba(0, 0, 0, 0.9); /* Daha opak */
+    }
+    #usernameModal .form-group button {
+        width: 100%; /* Kullanıcı adı butonunu tam genişlik yap */
+    }
+
     /* Medya sorguları */
     @media (max-width: 768px) {
       h1 { font-size: 32px; }
@@ -1233,6 +1350,8 @@
     <h2 data-lang-key="loading">Yükleniyor...</h2>
   </div>
 
+  <div id="global-announcement"></div>
+
   <div id="achievement-toast">
       <span class="toast-icon">🏆</span>
       <div class="toast-content">
@@ -1287,33 +1406,51 @@
       <div class="menu-options">
         <button onclick="openModal('csPathModal')" data-lang-key="csPathBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-5h16V6H4v2z"/></svg></span>
+            <span data-lang-key="csPathBtn">CS Yolu</span>
         </button>
         <button onclick="openModal('dailyRewardModal')" id="dailyRewardsMenuBtn" data-lang-key="dailyRewardsBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3c0 .35.07.69.18 1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-2h4a1 1 0 0 1 1 1 1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm8 16H4V8h16v12z"/></svg></span>
+            <span data-lang-key="dailyRewardsBtn">Günlük Ödüller</span>
         </button>
         <button onclick="openModal('inventoryModal')" data-lang-key="inventoryBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-3.18C16.3 4.24 14.36 3 12 3s-4.3 1.24-4.82 3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></span>
+            <span data-lang-key="inventoryBtn">Envanter</span>
         </button>
         <button onclick="openModal('boostShopModal')" data-lang-key="boostShopBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M11 9h2V6h3V4h-3V1h-2v3H8v2h3v3zm-4 9c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.1.17H16.8l2.92-5.04-1.55-.89L16.8 11H8.53L4.27 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"/></svg></span>
+            <span data-lang-key="boostShopBtn">Boost Mağazası</span>
         </button>
         <button onclick="openModal('achievementsModal')" data-lang-key="achievementsBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+            <span data-lang-key="achievementsBtn">Başarımlar</span>
+        </button>
+         <button onclick="openModal('collectionModal')" data-lang-key="collectionBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg></span>
+            <span data-lang-key="collectionBtn">Koleksiyon</span>
+        </button>
+        <button onclick="openModal('probabilityModal')" data-lang-key="probabilityBtn">
+            <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.99 2h2v2h-2V5zm-3 0h2v2h-2V5zm-3 0h2v2H8V5zM7 19H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5v-2h2v2zm0-3H5V8h2v2zm3 6H8v-2h2v2zm0-3H8v-2h2v2zm0-3H8v-2h2v2zm0-3H8V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V8h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2v-2h2v2zm3 3h-2v-2h2v2z"/></svg></span>
+            <span data-lang-key="probabilityBtn">Şans Tablosu</span>
         </button>
         <button onclick="openModal('autoSellModal')" data-lang-key="autoSellSettingsBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4zm-2-4h8v2H8z"/></svg></span>
+            <span data-lang-key="autoSellSettingsBtn">Oto-Sat</span>
         </button>
         <button onclick="openModal('autoOpenModal')" data-lang-key="autoOpenBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></span>
+            <span data-lang-key="autoOpenBtn">Oto-Aç</span>
         </button>
         <button onclick="openModal('versionPatchesModal')" data-lang-key="versionPatchesBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></span>
+            <span data-lang-key="versionPatchesBtn">Yamalar</span>
         </button>
         <button onclick="openModal('languageSelectModal')" data-lang-key="languageBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg></span>
+            <span data-lang-key="languageBtn">Dil</span>
         </button>
         <button onclick="resetGameAndConfirm()" data-lang-key="resetGameBtn">
             <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></span>
+            <span data-lang-key="resetGameBtn">Sıfırla</span>
         </button>
       </div>
     </div>
@@ -1467,6 +1604,69 @@
         <div id="cs-path-rewards-list"></div>
     </div>
   </div>
+  
+  <!-- YENİ EKLENEN MODALLAR -->
+  <div id="usernameModal" class="modal-overlay">
+      <div class="modal-content">
+          <h2 data-lang-key="welcomeTitle">Oyuna Hoş Geldin!</h2>
+          <p data-lang-key="enterUsernamePrompt">Lütfen bir kullanıcı adı girerek başla.</p>
+          <div class="form-group">
+              <input type="text" id="usernameInput" maxlength="20" placeholder="">
+          </div>
+          <div class="form-group">
+              <button id="saveUsernameBtn" data-lang-key="saveUsernameBtn">Kaydet ve Başla</button>
+          </div>
+      </div>
+  </div>
+
+  <div id="adminPanelModal" class="modal-overlay">
+      <div class="modal-content">
+          <button class="close-btn" onclick="closeModal('adminPanelModal')">&times;</button>
+          <h2 data-lang-key="adminPanelTitle">Admin Panel</h2>
+          <div class="form-group">
+              <label for="adminBalance" data-lang-key="adminAddBalance">Bakiye Ekle</label>
+              <input type="number" id="adminBalance" value="10000">
+              <button onclick="adminAddBalance()" data-lang-key="adminAddBtn">Ekle</button>
+          </div>
+          <div class="form-group">
+              <label for="adminXp" data-lang-key="adminAddXp">XP Ekle</label>
+              <input type="number" id="adminXp" value="1000">
+              <button onclick="adminAddXp()" data-lang-key="adminAddBtn">Ekle</button>
+          </div>
+          <div class="form-group">
+              <label for="adminItem" data-lang-key="adminAddItem">Eşya Ekle</label>
+              <select id="adminItem"></select>
+              <button onclick="adminAddItem()" data-lang-key="adminAddBtn">Ekle</button>
+          </div>
+      </div>
+  </div>
+
+  <div id="collectionModal" class="modal-overlay">
+      <div class="modal-content">
+          <button class="close-btn" onclick="closeModal('collectionModal')">&times;</button>
+          <h2 data-lang-key="collectionTitle">Koleksiyon</h2>
+          <p id="collection-progress" data-lang-key="collectionProgress">İlerleme: 0 / 0</p>
+          <div id="collection-grid"></div>
+      </div>
+  </div>
+
+  <div id="probabilityModal" class="modal-overlay">
+      <div class="modal-content">
+          <button class="close-btn" onclick="closeModal('probabilityModal')">&times;</button>
+          <h2 data-lang-key="probabilityTitle">Şans Tablosu</h2>
+          <p data-lang-key="probabilityDesc">Bunlar, mevcut boostlarınla birlikte güncel eşya düşürme oranlarıdır.</p>
+          <table id="probability-table">
+              <thead>
+                  <tr>
+                      <th data-lang-key="rarityHeader">Nadirlik</th>
+                      <th data-lang-key="chanceHeader">Şans</th>
+                  </tr>
+              </thead>
+              <tbody></tbody>
+          </table>
+      </div>
+  </div>
+
 
   <div id="quick-access-buttons">
     <button class="quick-access-btn" onclick="openModal('boostShopModal')">
@@ -1489,31 +1689,30 @@
   <script>
     // --- Data Definitions ---
     const translations = {
-      en: { loading: "Loading...", menuBtn: "☰ Menu", gameTitle: "🎁 CS:GO Case Opening Simulator MK", balance: "Balance:", caseCost: "Case Cost:", playerXP: "XP:", openCaseBtn: "Open Case", mainMenuTitle: "Main Menu", inventoryBtn: "Inventory", boostShopBtn: "Boost Shop", achievementsBtn: "Achievements", autoSellSettingsBtn: "Auto-Sell Settings", autoOpenBtn: "Auto Open Case", versionPatchesBtn: "Version Patches", languageBtn: "Language Options", resetGameBtn: "Reset Game", dailyRewardsBtn: "Daily Rewards", csPathBtn: "CS Path", inventoryTitle: "Your Inventory", allRarities: "All Rarities", commonRarity: "Common", rareRarity: "Rare", epicRarity: "Epic", legendaryRarity: "Legendary", exoticRarity: "Exotic", ancientRarity: "Ancient", immortalRarity: "Immortal", allTypes: "All Types", itemType: "Items", boostType: "Boosts", filterBtn: "Filter", sellAllFilteredBtn: "Sell All Filtered", noItemsMessage: "Your inventory is empty. Open a case and win items!", boostShopTitle: "Boost Shop", noBoostsMessage: "No boosts available for purchase at the moment.", achievementsTitle: "Achievements", noAchievementsMessage: "No achievements defined yet.", sellBtn: "Sell", favoriteBtn: "Favorite ⭐", unfavoriteBtn: "Unfavorite ⭐", closeBtn: "Close", autoSellSettingsTitle: "Auto-Sell Settings", autoSellDescription: "Items of selected rarities will be sold automatically upon opening.", saveSettingsBtn: "Save Settings", autoOpenTitle: "Auto Open Case", startBtn: "Start", stopBtn: "Stop", casesOpened: "Cases Opened:", languageOptionsTitle: "Language Options", englishLang: "English", turkishLang: "Turkish", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Shop", inventoryQuickAccess: "Inventory", achievementsQuickAccess: "Achievements", youWon: "You Won:", notEnoughBalance: "Insufficient balance! You need {cost}$ to open a case.", autoSellStoppedBalance: "Insufficient balance! Auto case opening stopped.", itemSoldAuto: "(Auto Sold)", itemSold: "{item} sold for {price}$!", itemNotFound: "ERROR: Item not found in inventory!", boostCannotBeSold: "Boost items cannot be sold!", cannotSellFavorite: "You cannot sell a favorite item! Unfavorite it first.", boostAlreadyOwned: "You already own this boost!", boostPurchased: "{boostName} successfully purchased! Boost active!", achievementCompleted: "ACHIEVEMENT UNLOCKED", achievementRewardBalance: "{amount}$ earned!", achievementRewardBoost: "You won the {boostName} boost and it's active!", achievementBoostAlreadyOwned: "You already own the {boostName} boost.", unknownBoostReward: "Unknown boost reward!", autoSellStatusOff: "Auto-sell is off.", autoSellStatusOn: "Auto-sell rarities: {rarities}", autoOpenMinAchievements: "You need to complete at least 5 achievements for auto case opening. Currently {count} achievements completed.", autoOpenStopped: "Auto case opening stopped.", gameSavedError: "An error occurred while saving game data.", gameLoadedError: "An error occurred while loading saved game. A new game has started.", gameReset: "Game has been reset!", filteredItemsSold: "{count} items sold for {value}$!", noFilteredItemsToSell: "No filtered items to sell or all are favorite/boost.", confirmResetGame: "Are you sure you want to reset all game data? This action cannot be undone!", favoriteAdded: "{item} added to favorites!", favoriteRemoved: "You have removed {item} from your favorites!", itemLoadError: "Error: Item could not be loaded", dailyRewardsTitle: "Daily Rewards", dailyRewardDesc: "Log in every day to claim a special reward!", dailyRewardClaimed: "Reward for Day {day} claimed!", dailyRewardAlreadyClaimed: "Today's reward has already been claimed. Come back tomorrow!", dailyRewardNotReady: "Today's reward is not available yet.", day: "Day", claimBtn: "Claim", claimedBtn: "Claimed", csPathTitle: "CS Path", csPathDesc: "Earn XP by opening cases and claim rewards as you progress on the path!", tier: "Tier", xpUnit: "XP", reward: "Reward", csPathRewardClaimed: "Reward for Tier {tier} claimed!", dailyCaseLimitReached: "Daily case limit reached ({limit}). Come back tomorrow!", inProgressAchievement: "In Progress", sellLastBtn: "Sell Last Item", noSellableItem: "No sellable item in inventory!", mute: "Mute", unmute: "Unmute" },
-      tr: { loading: "Yükleniyor...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kasa Açma Simülasyonu MK", balance: "Bakiye:", caseCost: "Kasa Maliyeti:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Ana Menü", inventoryBtn: "Envanter", boostShopBtn: "Boost Mağazası", achievementsBtn: "Başarımlar", autoSellSettingsBtn: "Otomatik Sat Ayarları", autoOpenBtn: "Otomatik Kasa Aç", versionPatchesBtn: "Sürüm Yamaları", languageBtn: "Dil Seçenekleri", resetGameBtn: "Oyunu Sıfırla", dailyRewardsBtn: "Günlük Ödüller", csPathBtn: "CS Yolu", inventoryTitle: "Envanterin", allRarities: "Tüm Nadirlikler", commonRarity: "Sıradan", rareRarity: "Nadir", epicRarity: "Destansı", legendaryRarity: "Efsanevi", exoticRarity: "Egzotik", ancientRarity: "Kadim", immortalRarity: "Ölümsüz", allTypes: "Tüm Türler", itemType: "Eşyalar", boostType: "Boostlar", filterBtn: "Filtrele", sellAllFilteredBtn: "Filtrelenenleri Sat", noItemsMessage: "Envanterin boş. Bir kasa aç ve eşya kazan!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Şu anda satın alınabilecek boost yok.", achievementsTitle: "Başarımlar", noAchievementsMessage: "Henüz başarım tanımlanmamış.", sellBtn: "Sat", favoriteBtn: "Favorile ⭐", unfavoriteBtn: "Favoriden Çıkar ⭐", closeBtn: "Kapat", autoSellSettingsTitle: "Otomatik Sat Ayarları", autoSellDescription: "Açtığın eşyaların, seçtiğin nadirlikteki olanları otomatik olarak satılacaktır.", saveSettingsBtn: "Ayarları Kaydet", autoOpenTitle: "Otomatik Kasa Aç", startBtn: "Başlat", stopBtn: "Durdur", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçenekleri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Mağazası", inventoryQuickAccess: "Envanter", achievementsQuickAccess: "Başarımlar", youWon: "Kazandın:", notEnoughBalance: "Yetersiz bakiye! Kasa açmak için {cost}$'a ihtiyacın var.", autoSellStoppedBalance: "Yetersiz bakiye! Otomatik kasa açma durduruldu.", itemSoldAuto: "(Otomatik Satıldı)", itemSold: "{item} {price}$ karşılığında satıldı!", itemNotFound: "HATA: Eşya envanterde bulunamadı!", boostCannotBeSold: "Boost eşyaları satılamaz!", cannotSellFavorite: "Favori bir eşyayı satamazsın! Önce favorilerden çıkar.", boostAlreadyOwned: "Bu boost'a zaten sahipsin!", boostPurchased: "{boostName} başarıyla satın alındı! Boost aktif!", achievementCompleted: "BAŞARIM AÇILDI", achievementRewardBalance: "{amount}$ kazandın!", achievementRewardBoost: "{boostName} boost'unu kazandın ve aktif edildi!", achievementBoostAlreadyOwned: "{boostName} boost'una zaten sahipsin.", unknownBoostReward: "Bilinmeyen bir boost ödülü!", autoSellStatusOff: "Otomatik satma kapalı.", autoSellStatusOn: "Otomatik satılacak nadirlikler: {rarities}", autoOpenMinAchievements: "Otomatik kasa açma için en az 5 başarım tamamlamalısın! Şu an {count} başarım tamamlandı.", autoOpenStopped: "Otomatik kasa açma durduruldu.", gameSavedError: "Oyun verileri kaydedilirken bir hata oluştu.", gameLoadedError: "Kayıtlı oyun yüklenirken hata oluştu. Yeni oyun başlatıldı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} eşya {value}$ karşılığında satıldı!", noFilteredItemsToSell: "Satılacak filtrelenmiş eşya bulunamadı veya hepsi favori/boost.", confirmResetGame: "Tüm oyun verilerini sıfırlamak istediğine emin misin? Bu işlem geri alınamaz!", favoriteAdded: "{item} favorilere eklendi!", favoriteRemoved: "{item} favorilerden çıkarıldı!", itemLoadError: "Hata: Eşya yüklenemedi", dailyRewardsTitle: "Günlük Ödüller", dailyRewardDesc: "Her gün giriş yaparak özel bir ödül kazan!", dailyRewardClaimed: "{day}. Gün ödülü alındı!", dailyRewardAlreadyClaimed: "Bugünün ödülü zaten alındı. Yarın tekrar gel!", dailyRewardNotReady: "Bugünün ödülü henüz hazır değil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açarak XP kazan ve yolda ilerleyerek ödülleri topla!", tier: "Kademe", xpUnit: "XP", reward: "Ödül", csPathRewardClaimed: "{tier}. Kademe ödülü alındı!", dailyCaseLimitReached: "Günlük kasa açma limitine ({limit}) ulaşıldı. Yarın tekrar gel!", inProgressAchievement: "Devam Ediyor", sellLastBtn: "Son Eşyayı Sat", noSellableItem: "Envanterde satılabilir eşya yok!", mute: "Sesi Kapat", unmute: "Sesi Aç" },
-      ar: { loading: "جاري التحميل...", menuBtn: "☰ القائمة", gameTitle: "🎁 محاكي فتح الصناديق MK لـ CS:GO", balance: "الرصيد:", caseCost: "تكلفة الصندوق:", playerXP: "الخبرة:", openCaseBtn: "فتح الصندوق", mainMenuTitle: "القائمة الرئيسية", inventoryBtn: "المخزون", boostShopBtn: "متجر التعزيزات", achievementsBtn: "الإنجازات", autoSellSettingsBtn: "إعدادات البيع التلقائي", autoOpenBtn: "فتح تلقائي", versionPatchesBtn: "تحديثات الإصدار", languageBtn: "خيارات اللغة", resetGameBtn: "إعادة تعيين", dailyRewardsBtn: "المكافآت اليومية", csPathBtn: "مسار CS", inventoryTitle: "مخزونك", allRarities: "جميع الندرات", commonRarity: "عادي", rareRarity: "نادر", epicRarity: "ملحمي", legendaryRarity: "أسطوري", exoticRarity: "غريب", ancientRarity: "قديم", immortalRarity: "خالد", allTypes: "جميع الأنواع", itemType: "العناصر", boostType: "التعزيزات", filterBtn: "تصفية", sellAllFilteredBtn: "بيع المصفى", noItemsMessage: "مخزونك فارغ. افتح صندوقاً واكسب عناصر!", boostShopTitle: "متجر التعزيزات", noBoostsMessage: "لا توجد تعزيزات متاحة للشراء حالياً.", achievementsTitle: "الإنجازات", noAchievementsMessage: "لم يتم تعريف إنجازات بعد.", sellBtn: "بيع", favoriteBtn: "تفضيل ⭐", unfavoriteBtn: "إلغاء التفضيل ⭐", closeBtn: "إغلاق", autoSellSettingsTitle: "إعدادات البيع التلقائي", autoSellDescription: "سيتم بيع العناصر من الندرات المحددة تلقائياً عند فتحها.", saveSettingsBtn: "حفظ الإعدادات", autoOpenTitle: "فتح الصندوق تلقائياً", startBtn: "بدء", stopBtn: "إيقاف", casesOpened: "الصناديق المفتوحة:", languageOptionsTitle: "خيارات اللغة", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "متجر التعزيزات", inventoryQuickAccess: "المخزون", achievementsQuickAccess: "الإنجازات", youWon: "لقد ربحت:", notEnoughBalance: "رصيد غير كافٍ! تحتاج إلى {cost}$ لفتح صندوق.", autoSellStoppedBalance: "رصيد غير كافٍ! تم إيقاف الفتح التلقائي.", itemSoldAuto: "(تم البيع تلقائياً)", itemSold: "تم بيع {item} مقابل {price}$!", itemNotFound: "خطأ: العنصر غير موجود في المخزون!", boostCannotBeSold: "عناصر التعزيز لا يمكن بيعها!", cannotSellFavorite: "لا يمكنك بيع عنصر مفضل! قم بإزالته من المفضلة أولاً.", boostAlreadyOwned: "أنت تمتلك هذا التعزيز بالفعل!", boostPurchased: "تم شراء {boostName} بنجاح! التعزيز نشط!", achievementCompleted: "تم فتح الإنجاز", achievementRewardBalance: "ربحت {amount}$!", achievementRewardBoost: "لقد ربحت تعزيز {boostName} وتم تفعيله!", achievementBoostAlreadyOwned: "أنت تمتلك تعزيز {boostName} بالفعل.", unknownBoostReward: "مكافأة تعزيز غير معروفة!", autoSellStatusOff: "البيع التلقائي متوقف.", autoSellStatusOn: "ندرات البيع التلقائي: {rarities}", autoOpenMinAchievements: "تحتاج إلى إكمال 5 إنجازات على الأقل للفتح التلقائي. حالياً تم إكمال {count} إنجازات.", autoOpenStopped: "تم إيقاف الفتح التلقائي.", gameSavedError: "حدث خطأ أثناء حفظ بيانات اللعبة.", gameLoadedError: "حدث خطأ أثناء تحميل اللعبة. تم بدء لعبة جديدة.", gameReset: "تمت إعادة تعيين اللعبة!", filteredItemsSold: "تم بيع {count} عنصر مقابل {value}$!", noFilteredItemsToSell: "لا توجد عناصر مصفاة للبيع أو جميعها مفضلة/تعزيزات.", confirmResetGame: "هل أنت متأكد أنك تريد إعادة تعيين جميع بيانات اللعبة؟ لا يمكن التراجع عن هذا الإجراء!", favoriteAdded: "تمت إضافة {item} إلى المفضلة!", favoriteRemoved: "تمت إزالة {item} من المفضلة!", itemLoadError: "خطأ: لم يتم تحميل العنصر", dailyRewardsTitle: "المكافآت اليومية", dailyRewardDesc: "سجل الدخول كل يوم للحصول على مكافأة خاصة!", dailyRewardClaimed: "تم استلام مكافأة اليوم {day}!", dailyRewardAlreadyClaimed: "تم استلام مكافأة اليوم بالفعل. عد غدًا!", dailyRewardNotReady: "مكافأة اليوم غير متاحة بعد.", day: "يوم", claimBtn: "استلام", claimedBtn: "تم الاستلام", csPathTitle: "مسار CS", csPathDesc: "اكسب نقاط الخبرة عن طريق فتح الصناديق واحصل على المكافآت كلما تقدمت في المسار!", tier: "المستوى", xpUnit: "خبرة", reward: "المكافأة", csPathRewardClaimed: "تم استلام مكافأة المستوى {tier}!", dailyCaseLimitReached: "لقد وصلت إلى الحد الأقصى لفتح الصناديق اليومي ({limit}). عد غدًا!", inProgressAchievement: "قيد التقدم", sellLastBtn: "بيع آخر عنصر", noSellableItem: "لا يوجد عنصر قابل للبيع في المخزون!", mute: "كتم الصوت", unmute: "إلغاء كتم الصوت" },
-      de: { loading: "Wird geladen...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kistenöffnungs-Simulator MK", balance: "Guthaben:", caseCost: "Kistenkosten:", playerXP: "EP:", openCaseBtn: "Kiste öffnen", mainMenuTitle: "Hauptmenü", inventoryBtn: "Inventar", boostShopBtn: "Boost-Shop", achievementsBtn: "Erfolge", autoSellSettingsBtn: "Auto-Verkauf", autoOpenBtn: "Auto-Öffnen", versionPatchesBtn: "Versionen", languageBtn: "Sprache", resetGameBtn: "Zurücksetzen", dailyRewardsBtn: "Tägliche Belohnungen", csPathBtn: "CS-Pfad", inventoryTitle: "Dein Inventar", allRarities: "Alle Seltenheiten", commonRarity: "Gewöhnlich", rareRarity: "Selten", epicRarity: "Episch", legendaryRarity: "Legendär", exoticRarity: "Exotisch", ancientRarity: "Antik", immortalRarity: "Unsterblich", allTypes: "Alle Typen", itemType: "Gegenstände", boostType: "Boosts", filterBtn: "Filtern", sellAllFilteredBtn: "Gefilterte verkaufen", noItemsMessage: "Dein Inventar ist leer. Öffne eine Kiste und gewinne Gegenstände!", boostShopTitle: "Boost-Shop", noBoostsMessage: "Derzeit sind keine Boosts zum Kauf verfügbar.", achievementsTitle: "Erfolge", noAchievementsMessage: "Noch keine Erfolge definiert.", sellBtn: "Verkaufen", favoriteBtn: "Favorisieren ⭐", unfavoriteBtn: "Entfavorisieren ⭐", closeBtn: "Schließen", autoSellSettingsTitle: "Auto-Verkauf Einstellungen", autoSellDescription: "Gegenstände ausgewählter Seltenheiten werden beim Öffnen automatisch verkauft.", saveSettingsBtn: "Speichern", autoOpenTitle: "Auto-Kisten öffnen", startBtn: "Starten", stopBtn: "Stoppen", casesOpened: "Geöffnete Kisten:", languageOptionsTitle: "Sprachoptionen", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost-Shop", inventoryQuickAccess: "Inventar", achievementsQuickAccess: "Erfolge", youWon: "Du hast gewonnen:", notEnoughBalance: "Unzureichendes Guthaben! Du benötigst {cost}$ zum Öffnen.", autoSellStoppedBalance: "Unzureichendes Guthaben! Auto-Öffnen gestoppt.", itemSoldAuto: "(Automatisch verkauft)", itemSold: "{item} für {price}$ verkauft!", itemNotFound: "FEHLER: Gegenstand nicht im Inventar gefunden!", boostCannotBeSold: "Boost-Gegenstände können nicht verkauft werden!", cannotSellFavorite: "Du kannst einen Favoriten nicht verkaufen! Entferne ihn zuerst.", boostAlreadyOwned: "Du besitzt diesen Boost bereits!", boostPurchased: "{boostName} erfolgreich gekauft! Boost aktiv!", achievementCompleted: "ERFOLG FREIGESCHALTET", achievementRewardBalance: "{amount}$ verdient!", achievementRewardBoost: "Du hast den {boostName} Boost gewonnen und er ist aktiv!", achievementBoostAlreadyOwned: "Du besitzt den {boostName} Boost bereits.", unknownBoostReward: "Unbekannte Boost-Belohnung!", autoSellStatusOff: "Auto-Verkauf ist aus.", autoSellStatusOn: "Auto-Verkauf für: {rarities}", autoOpenMinAchievements: "Du musst 5 Erfolge für das Auto-Öffnen abschließen. Derzeit {count} abgeschlossen.", autoOpenStopped: "Auto-Öffnen gestoppt.", gameSavedError: "Fehler beim Speichern der Spieldaten.", gameLoadedError: "Fehler beim Laden des Spielstands. Neues Spiel gestartet.", gameReset: "Spiel wurde zurückgesetzt!", filteredItemsSold: "{count} Gegenstände für {value}$ verkauft!", noFilteredItemsToSell: "Keine gefilterten Gegenstände zum Verkauf.", confirmResetGame: "Möchtest du wirklich alle Spieldaten zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden!", favoriteAdded: "{item} zu Favoriten hinzugefügt!", favoriteRemoved: "{item} aus Favoriten entfernt!", itemLoadError: "Fehler: Gegenstand konnte nicht geladen werden", dailyRewardsTitle: "Tägliche Belohnungen", dailyRewardDesc: "Logge dich jeden Tag ein, um eine besondere Belohnung zu erhalten!", dailyRewardClaimed: "Belohnung für Tag {day} erhalten!", dailyRewardAlreadyClaimed: "Die heutige Belohnung wurde bereits abgeholt. Komm morgen wieder!", dailyRewardNotReady: "Die heutige Belohnung ist noch nicht verfügbar.", day: "Tag", claimBtn: "Abholen", claimedBtn: "Abgeholt", csPathTitle: "CS-Pfad", csPathDesc: "Sammle EP durch das Öffnen von Kisten und schalte Belohnungen auf dem Pfad frei!", tier: "Stufe", xpUnit: "EP", reward: "Belohnung", csPathRewardClaimed: "Belohnung für Stufe {tier} erhalten!", dailyCaseLimitReached: "Tägliches Kistenlimit ({limit}) erreicht. Komm morgen wieder!", inProgressAchievement: "In Arbeit", sellLastBtn: "Letztes Item Verkaufen", noSellableItem: "Kein verkaufbares Item im Inventar!", mute: "Stumm", unmute: "Ton an" },
-      es: { loading: "Cargando...", menuBtn: "☰ Menú", gameTitle: "🎁 Simulador de Apertura de Cajas CS:GO MK", balance: "Saldo:", caseCost: "Costo:", playerXP: "EXP:", openCaseBtn: "Abrir Caja", mainMenuTitle: "Menú Principal", inventoryBtn: "Inventario", boostShopBtn: "Tienda", achievementsBtn: "Logros", autoSellSettingsBtn: "Venta Auto", autoOpenBtn: "Apertura Auto", versionPatchesBtn: "Versiones", languageBtn: "Idioma", resetGameBtn: "Reiniciar", dailyRewardsBtn: "Recompensas Diarias", csPathBtn: "Camino CS", inventoryTitle: "Tu Inventario", allRarities: "Todas las Rarezas", commonRarity: "Común", rareRarity: "Raro", epicRarity: "Épico", legendaryRarity: "Legendario", exoticRarity: "Exótico", ancientRarity: "Antiguo", immortalRarity: "Inmortal", allTypes: "Todos los Tipos", itemType: "Artículos", boostType: "Boosts", filterBtn: "Filtrar", sellAllFilteredBtn: "Vender Filtrados", noItemsMessage: "Tu inventario está vacío. ¡Abre una caja y gana artículos!", boostShopTitle: "Tienda de Boosts", noBoostsMessage: "No hay boosts disponibles para comprar.", achievementsTitle: "Logros", noAchievementsMessage: "Aún no se han definido logros.", sellBtn: "Vender", favoriteBtn: "Favorito ⭐", unfavoriteBtn: "No Favorito ⭐", closeBtn: "Cerrar", autoSellSettingsTitle: "Configuración de Venta Automática", autoSellDescription: "Los artículos de rarezas seleccionadas se venderán automáticamente al abrirlos.", saveSettingsBtn: "Guardar", autoOpenTitle: "Abrir Caja Automáticamente", startBtn: "Iniciar", stopBtn: "Detener", casesOpened: "Cajas Abiertas:", languageOptionsTitle: "Opciones de Idioma", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Tienda de Boosts", inventoryQuickAccess: "Inventario", achievementsQuickAccess: "Logros", youWon: "Ganaste:", notEnoughBalance: "¡Saldo insuficiente! Necesitas {cost}$ para abrir una caja.", autoSellStoppedBalance: "¡Saldo insuficiente! Apertura automática detenida.", itemSoldAuto: "(Vendido Automáticamente)", itemSold: "¡{item} vendido por {price}$!", itemNotFound: "ERROR: ¡Artículo no encontrado en el inventario!", boostCannotBeSold: "¡Los boosts no se pueden vender!", cannotSellFavorite: "¡No puedes vender un artículo favorito! Quítalo de favoritos primero.", boostAlreadyOwned: "¡Ya posees este boost!", boostPurchased: "¡{boostName} comprado! ¡Boost activo!", achievementCompleted: "¡LOGRO DESBLOQUEADO!", achievementRewardBalance: "¡{amount}$ ganados!", achievementRewardBoost: "¡Ganaste el boost {boostName} y está activo!", achievementBoostAlreadyOwned: "Ya posees el boost {boostName}.", unknownBoostReward: "¡Recompensa de boost desconocida!", autoSellStatusOff: "Venta automática desactivada.", autoSellStatusOn: "Venta automática para: {rarities}", autoOpenMinAchievements: "Necesitas 5 logros para la apertura automática. Tienes {count}.", autoOpenStopped: "Apertura automática detenida.", gameSavedError: "Error al guardar los datos del juego.", gameLoadedError: "Error al cargar el juego. Se inició un nuevo juego.", gameReset: "¡Juego reiniciado!", filteredItemsSold: "¡{count} artículos vendidos por {value}$!", noFilteredItemsToSell: "No hay artículos filtrados para vender.", confirmResetGame: "¿Seguro que quieres reiniciar todos los datos del juego? Esta acción no se puede deshacer.", favoriteAdded: "¡{item} añadido a favoritos!", favoriteRemoved: "¡{item} eliminado de favoritos!", itemLoadError: "Error: No se pudo cargar el artículo", dailyRewardsTitle: "Recompensas Diarias", dailyRewardDesc: "¡Inicia sesión cada día para reclamar una recompensa especial!", dailyRewardClaimed: "¡Recompensa del día {day} reclamada!", dailyRewardAlreadyClaimed: "La recompensa de hoy ya ha sido reclamada. ¡Vuelve mañana!", dailyRewardNotReady: "La recompensa de hoy aún no está disponible.", day: "Día", claimBtn: "Reclamar", claimedBtn: "Reclamado", csPathTitle: "Camino CS", csPathDesc: "¡Gana EXP abriendo cajas y reclama recompensas a medida que avanzas en el camino!", tier: "Nivel", xpUnit: "EXP", reward: "Recompensa", csPathRewardClaimed: "¡Recompensa del Nivel {tier} reclamada!", dailyCaseLimitReached: "Límite diario de cajas ({limit}) alcanzado. ¡Vuelve mañana!", inProgressAchievement: "En Progreso", sellLastBtn: "Vender Último Objeto", noSellableItem: "¡No hay objetos vendibles en el inventario!", mute: "Silenciar", unmute: "Activar sonido" },
-      az: { loading: "Yüklənir...", menuBtn: "☰ Menyu", gameTitle: "🎁 CS:GO Kasa Açma Simulyatoru MK", balance: "Balans:", caseCost: "Kasa Dəyəri:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Əsas Menyu", inventoryBtn: "İnventar", boostShopBtn: "Boost Mağazası", achievementsBtn: "Nailiyyətlər", autoSellSettingsBtn: "Avto-Satış", autoOpenBtn: "Avto-Aç", versionPatchesBtn: "Versiyalar", languageBtn: "Dil", resetGameBtn: "Sıfırla", dailyRewardsBtn: "Gündəlik Mükafatlar", csPathBtn: "CS Yolu", inventoryTitle: "Sizin İnventarınız", allRarities: "Bütün Nadirliklər", commonRarity: "Adi", rareRarity: "Nadir", epicRarity: "Epik", legendaryRarity: "Əfsanəvi", exoticRarity: "Ekzotik", ancientRarity: "Qədim", immortalRarity: "Ölümsüz", allTypes: "Bütün Növlər", itemType: "Əşyalar", boostType: "Boostlar", filterBtn: "Filtrlə", sellAllFilteredBtn: "Filtrlənənləri Sat", noItemsMessage: "İnventarınız boşdur. Kasa açın və əşyalar qazanın!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Hal-hazırda satın alına biləcək boost yoxdur.", achievementsTitle: "Nailiyyətlər", noAchievementsMessage: "Hələ nailiyyət təyin edilməyib.", sellBtn: "Sat", favoriteBtn: "Favorit et ⭐", unfavoriteBtn: "Favoritdən çıxar ⭐", closeBtn: "Bağla", autoSellSettingsTitle: "Avtomatik Satış Ayarları", autoSellDescription: "Seçilmiş nadirlikdəki əşyalar açıldıqda avtomatik satılacaq.", saveSettingsBtn: "Yadda Saxla", autoOpenTitle: "Avtomatik Kasa Aç", startBtn: "Başla", stopBtn: "Dayandır", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçimləri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Boost Mağazası", inventoryQuickAccess: "İnventar", achievementsQuickAccess: "Nailiyyətlər", youWon: "Siz Qazandınız:", notEnoughBalance: "Balans yetərsizdir! Kasa açmaq üçün {cost}$ lazımdır.", autoSellStoppedBalance: "Balans yetərsizdir! Avtomatik açılış dayandırıldı.", itemSoldAuto: "(Avtomatik Satıldı)", itemSold: "{item} {price}$ qarşılığında satıldı!", itemNotFound: "XƏTA: Əşya inventarda tapılmadı!", boostCannotBeSold: "Boost əşyaları satıla bilməz!", cannotSellFavorite: "Favorit əşyanı sata bilməzsən! Əvvəlcə favoritlərdən çıxar.", boostAlreadyOwned: "Bu boosta artıq sahibsiniz!", boostPurchased: "{boostName} uğurla alındı! Boost aktivdir!", achievementCompleted: "NAİLİYYƏT AÇILDI", achievementRewardBalance: "{amount}$ qazandın!", achievementRewardBoost: "{boostName} boostunu qazandın və aktiv edildi!", achievementBoostAlreadyOwned: "{boostName} boostuna artıq sahibsiniz.", unknownBoostReward: "Naməlum boost mükafatı!", autoSellStatusOff: "Avtomatik satış bağlıdır.", autoSellStatusOn: "Avtomatik satılacaq nadirliklər: {rarities}", autoOpenMinAchievements: "Avtomatik açmaq üçün ən az 5 nailiyyət tamamlamalısan! Hazırda {count} tamamlanıb.", autoOpenStopped: "Avtomatik açılış dayandırıldı.", gameSavedError: "Oyun məlumatları saxlanarkən xəta baş verdi.", gameLoadedError: "Oyun yüklənərkən xəta baş verdi. Yeni oyun başladı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} əşya {value}$ qarşılığında satıldı!", noFilteredItemsToSell: "Satılacaq filtrlənmiş əşya tapılmadı.", confirmResetGame: "Bütün oyun məlumatlarını sıfırlamaq istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz!", favoriteAdded: "{item} favoritlərə əlavə edildi!", favoriteRemoved: "{item} favoritlərdən çıxarıldı!", itemLoadError: "Xəta: Əşya yüklənə bilmədi", dailyRewardsTitle: "Gündəlik Mükafatlar", dailyRewardDesc: "Xüsusi bir mükafat qazanmaq üçün hər gün daxil olun!", dailyRewardClaimed: "{day}. Gün mükafatı alındı!", dailyRewardAlreadyClaimed: "Bugünkü mükafat artıq alınıb. Sabah yenidən gəlin!", dailyRewardNotReady: "Bugünkü mükafat hələ hazır deyil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açaraq XP qazanın və yolda irəliləyərək mükafatları toplayın!", tier: "Səviyyə", xpUnit: "XP", reward: "Mükafat", csPathRewardClaimed: "{tier}. Səviyyə mükafatı alındı!", dailyCaseLimitReached: "Gündəlik kasa açma limitinə ({limit}) çatdınız. Sabah yenidən gəlin!", inProgressAchievement: "Davam edir", sellLastBtn: "Son Əşyanı Sat", noSellableItem: "İnventarda satıla bilən əşya yoxdur!", mute: "Səsi Bağla", unmute: "Səsi Aç" },
-      ru: { loading: "Загрузка...", menuBtn: "☰ Меню", gameTitle: "🎁 Симулятор открытия кейсов CS:GO MK", balance: "Баланс:", caseCost: "Цена кейса:", playerXP: "Опыт:", openCaseBtn: "Открыть кейс", mainMenuTitle: "Главное меню", inventoryBtn: "Инвентарь", boostShopBtn: "Магазин бустов", achievementsBtn: "Достижения", autoSellSettingsBtn: "Авто-продажа", autoOpenBtn: "Авто-открытие", versionPatchesBtn: "Версии", languageBtn: "Язык", resetGameBtn: "Сбросить игру", dailyRewardsBtn: "Ежедневные награды", csPathBtn: "Путь CS", inventoryTitle: "Ваш инвентарь", allRarities: "Все редкости", commonRarity: "Обычный", rareRarity: "Редкий", epicRarity: "Эпический", legendaryRarity: "Легендарный", exoticRarity: "Экзотический", ancientRarity: "Древний", immortalRarity: "Бессмертный", allTypes: "Все типы", itemType: "Предметы", boostType: "Бусты", filterBtn: "Фильтр", sellAllFilteredBtn: "Продать отфильтрованное", noItemsMessage: "Ваш инвентарь пуст. Откройте кейс и выиграйте предметы!", boostShopTitle: "Магазин бустов", noBoostsMessage: "В данный момент нет доступных для покупки бустов.", achievementsTitle: "Достижения", noAchievementsMessage: "Достижения еще не определены.", sellBtn: "Продать", favoriteBtn: "В избранное ⭐", unfavoriteBtn: "Убрать из избранного ⭐", closeBtn: "Закрыть", autoSellSettingsTitle: "Настройки авто-продажи", autoSellDescription: "Предметы выбранных редкостей будут продаваться автоматически при открытии.", saveSettingsBtn: "Сохранить", autoOpenTitle: "Авто-открытие кейсов", startBtn: "Начать", stopBtn: "Остановить", casesOpened: "Открыто кейсов:", languageOptionsTitle: "Выбор языка", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "Магазин бустов", inventoryQuickAccess: "Инвентарь", achievementsQuickAccess: "Достижения", youWon: "Вы выиграли:", notEnoughBalance: "Недостаточно средств! Вам нужно {cost}$ для открытия кейса.", autoSellStoppedBalance: "Недостаточно средств! Авто-открытие остановлено.", itemSoldAuto: "(Авто-продажа)", itemSold: "{item} продан за {price}$!", itemNotFound: "ОШИБКА: Предмет не найден в инвентаре!", boostCannotBeSold: "Бусты нельзя продать!", cannotSellFavorite: "Нельзя продать избранный предмет! Сначала уберите его из избранного.", boostAlreadyOwned: "У вас уже есть этот буст!", boostPurchased: "{boostName} успешно куплен! Буст активен!", achievementCompleted: "ДОСТИЖЕНИЕ ОТКРЫТО", achievementRewardBalance: "Заработано {amount}$!", achievementRewardBoost: "Вы выиграли буст {boostName}, и он активен!", achievementBoostAlreadyOwned: "У вас уже есть буст {boostName}.", unknownBoostReward: "Неизвестная награда-буст!", autoSellStatusOff: "Авто-продажа выключена.", autoSellStatusOn: "Авто-продажа для: {rarities}", autoOpenMinAchievements: "Вам нужно выполнить 5 достижений для авто-открытия. Сейчас выполнено {count}.", autoOpenStopped: "Авто-открытие остановлено.", gameSavedError: "Произошла ошибка при сохранении данных игры.", gameLoadedError: "Произошла ошибка при загрузке игры. Начата новая игра.", gameReset: "Игра сброшена!", filteredItemsSold: "{count} предметов продано за {value}$!", noFilteredItemsToSell: "Нет отфильтрованных предметов для продажи.", confirmResetGame: "Вы уверены, что хотите сбросить все данные игры? Это действие необратимо!", favoriteAdded: "{item} добавлен в избранное!", favoriteRemoved: "{item} убран из избранного!", itemLoadError: "Ошибка: Предмет не может быть загружен", dailyRewardsTitle: "Ежедневные награды", dailyRewardDesc: "Заходите каждый день, чтобы получить особую награду!", dailyRewardClaimed: "Награда за день {day} получена!", dailyRewardAlreadyClaimed: "Сегодняшняя награда уже получена. Возвращайтесь завтра!", dailyRewardNotReady: "Сегодняшняя награда еще не доступна.", day: "День", claimBtn: "Забрать", claimedBtn: "Получено", csPathTitle: "Путь CS", csPathDesc: "Зарабатывайте опыт, открывая кейсы, и получайте награды за продвижение по пути!", tier: "Уровень", xpUnit: "ОП", reward: "Награда", csPathRewardClaimed: "Награда за уровень {tier} получена!", dailyCaseLimitReached: "Достигнут дневной лимит открытия кейсов ({limit}). Возвращайтесь завтра!", inProgressAchievement: "В процессе", sellLastBtn: "Продать последний предмет", noSellableItem: "Нет продаваемых предметов в инвентаре!", mute: "Выкл. звук", unmute: "Вкл. звук" },
-      ja: { loading: "ロード中...", menuBtn: "☰ メニュー", gameTitle: "🎁 CS:GOケース開封シミュレーター MK", balance: "残高:", caseCost: "ケース費用:", playerXP: "経験値:", openCaseBtn: "ケースを開ける", mainMenuTitle: "メインメニュー", inventoryBtn: "インベントリ", boostShopBtn: "ブーストショップ", achievementsBtn: "実績", autoSellSettingsBtn: "自動売却設定", autoOpenBtn: "自動で開ける", versionPatchesBtn: "バージョンパッチ", languageBtn: "言語オプション", resetGameBtn: "ゲームをリセット", dailyRewardsBtn: "デイリー報酬", csPathBtn: "CSパス", inventoryTitle: "あなたのインベントリ", allRarities: "すべてのレア度", commonRarity: "コモン", rareRarity: "レア", epicRarity: "エピック", legendaryRarity: "レジェンダリー", exoticRarity: "エキゾチック", ancientRarity: "エンシェント", immortalRarity: "イモータル", allTypes: "すべてのタイプ", itemType: "アイテム", boostType: "ブースト", filterBtn: "フィルター", sellAllFilteredBtn: "フィルター済みを全て売却", noItemsMessage: "インベントリは空です。ケースを開けてアイテムを獲得しましょう！", boostShopTitle: "ブーストショップ", noBoostsMessage: "現在購入可能なブーストはありません。", achievementsTitle: "実績", noAchievementsMessage: "まだ実績が定義されていません。", sellBtn: "売却", favoriteBtn: "お気に入り ⭐", unfavoriteBtn: "お気に入り解除 ⭐", closeBtn: "閉じる", autoSellSettingsTitle: "自動売却設定", autoSellDescription: "選択したレア度の開封済みアイテムは自動的に売却されます。", saveSettingsBtn: "設定を保存", autoOpenTitle: "ケースを自動で開ける", startBtn: "開始", stopBtn: "停止", casesOpened: "開封済みケース:", languageOptionsTitle: "言語オプション", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "ブーストショップ", inventoryQuickAccess: "インベントリ", achievementsQuickAccess: "実績", youWon: "獲得:", notEnoughBalance: "残高が不足しています！ケースを開けるには{cost}$必要です。", autoSellStoppedBalance: "残高が不足しています！自動ケース開封が停止しました。", itemSoldAuto: "(自動売却済み)", itemSold: "{item}を{price}$で売却しました！", itemNotFound: "エラー：インベントリにアイテムが見つかりません！", boostCannotBeSold: "ブーストアイテムは売却できません！", cannotSellFavorite: "お気に入りのアイテムは売却できません！まずはお気に入りから外してください。", boostAlreadyOwned: "このブーストは既に所有しています！", boostPurchased: "{boostName}を正常に購入しました！ブーストが有効です！", achievementCompleted: "実績をアンロック", achievementRewardBalance: "{amount}$獲得！", achievementRewardBoost: "{boostName}ブーストを獲得し、有効化されました！", achievementBoostAlreadyOwned: "{boostName}ブーストは既に所有しています。", unknownBoostReward: "不明なブースト報酬！", autoSellStatusOff: "自動売却はオフです。", autoSellStatusOn: "自動売却レア度: {rarities}", autoOpenMinAchievements: "自動ケース開封には最低5つの実績を達成する必要があります。現在{count}個達成済みです。", autoOpenStopped: "自動ケース開封が停止しました。", gameSavedError: "ゲームデータの保存中にエラーが発生しました。", gameLoadedError: "保存されたゲームの読み込み中にエラーが発生しました。新しいゲームが開始されました。", gameReset: "ゲームがリセットされました！", filteredItemsSold: "{count}個のアイテムを{value}$で売却しました！", noFilteredItemsToSell: "売却対象のフィルター済みアイテムがありません。", confirmResetGame: "すべてのゲームデータをリセットしてもよろしいですか？この操作は元に戻せません！", favoriteAdded: "{item}をお気に入りに追加しました！", favoriteRemoved: "{item}をお気に入りから削除しました！", itemLoadError: "エラー：アイテムを読み込めませんでした", dailyRewardsTitle: "デイリー報酬", dailyRewardDesc: "毎日ログインして特別な報酬を受け取りましょう！", dailyRewardClaimed: "{day}日目の報酬を受け取りました！", dailyRewardAlreadyClaimed: "今日の報酬は既に受け取っています。また明日お越しください！", dailyRewardNotReady: "今日の報酬はまだ利用できません。", day: "日目", claimBtn: "受け取る", claimedBtn: "受取済", csPathTitle: "CSパス", csPathDesc: "ケースを開けて経験値を稼ぎ、パスを進めて報酬を獲得しましょう！", tier: "ティア", xpUnit: "XP", reward: "報酬", csPathRewardClaimed: "ティア{tier}の報酬を受け取りました！", dailyCaseLimitReached: "1日のケース開封上限（{limit}）に達しました。また明日お越しください！", inProgressAchievement: "進行中", sellLastBtn: "最後のアイテムを売る", noSellableItem: "売れるアイテムがありません!", mute: "ミュート", unmute: "ミュート解除" },
-      ko: { loading: "로딩 중...", menuBtn: "☰ 메뉴", gameTitle: "🎁 CS:GO 케이스 오프닝 시뮬레이터 MK", balance: "잔액:", caseCost: "케이스 비용:", playerXP: "경험치:", openCaseBtn: "케이스 열기", mainMenuTitle: "메인 메뉴", inventoryBtn: "인벤토리", boostShopBtn: "부스트 상점", achievementsBtn: "업적", autoSellSettingsBtn: "자동 판매 설정", autoOpenBtn: "자동 열기", versionPatchesBtn: "버전 패치", languageBtn: "언어 옵션", resetGameBtn: "게임 초기화", dailyRewardsBtn: "일일 보상", csPathBtn: "CS 패스", inventoryTitle: "나의 인벤토리", allRarities: "모든 희귀도", commonRarity: "일반", rareRarity: "희귀", epicRarity: "에픽", legendaryRarity: "전설", exoticRarity: "이국적", ancientRarity: "고대", immortalRarity: "불멸", allTypes: "모든 종류", itemType: "아이템", boostType: "부스트", filterBtn: "필터", sellAllFilteredBtn: "필터된 항목 모두 판매", noItemsMessage: "인벤토리가 비어 있습니다. 케이스를 열어 아이템을 획득하세요!", boostShopTitle: "부스트 상점", noBoostsMessage: "현재 구매 가능한 부스트가 없습니다.", achievementsTitle: "업적", noAchievementsMessage: "아직 정의된 업적이 없습니다。", sellBtn: "판매", favoriteBtn: "즐겨찾기 ⭐", unfavoriteBtn: "즐겨찾기 해제 ⭐", closeBtn: "닫기", autoSellSettingsTitle: "자동 판매 설정", autoSellDescription: "선택된 희귀도의 아이템은 개봉 시 자동으로 판매됩니다。", saveSettingsBtn: "설정 저장", autoOpenTitle: "자동 케이스 열기", startBtn: "시작", stopBtn: "정지", casesOpened: "열린 케이스:", languageOptionsTitle: "언어 옵션", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", boostShopQuickAccess: "부스트 상점", inventoryQuickAccess: "인벤토리", achievementsQuickAccess: "업적", youWon: "획득:", notEnoughBalance: "잔액이 부족합니다! 케이스를 열려면 {cost}$가 필요합니다.", autoSellStoppedBalance: "잔액 부족! 자동 케이스 열기가 중지되었습니다.", itemSoldAuto: "(자동 판매됨)", itemSold: "{item}을(를) {price}$에 판매했습니다!", itemNotFound: "오류: 인벤토리에서 아이템을 찾을 수 없습니다!", boostCannotBeSold: "부스트 아이템은 판매할 수 없습니다!", cannotSellFavorite: "즐겨찾기한 아이템은 판매할 수 없습니다! 먼저 즐겨찾기에서 해제하세요.", boostAlreadyOwned: "이미 이 부스트를 소유하고 있습니다!", boostPurchased: "{boostName}을(를) 성공적으로 구매했습니다! 부스트 활성화!", achievementCompleted: "업적 달성", achievementRewardBalance: "{amount}$ 획득!", achievementRewardBoost: "{boostName} 부스트를 획득하여 활성화되었습니다!", achievementBoostAlreadyOwned: "이미 {boostName} 부스트를 소유하고 있습니다.", unknownBoostReward: "알 수 없는 부스트 보상!", autoSellStatusOff: "자동 판매가 꺼져 있습니다.", autoSellStatusOn: "자동 판매 희귀도: {rarities}", autoOpenMinAchievements: "자동 케이스 열기를 위해서는 최소 5개의 업적을 달성해야 합니다. 현재 {count}개 달성했습니다.", autoOpenStopped: "자동 케이스 열기가 중지되었습니다.", gameSavedError: "게임 데이터 저장 중 오류가 발생했습니다.", gameLoadedError: "저장된 게임을 불러오는 중 오류가 발생했습니다. 새 게임을 시작합니다.", gameReset: "게임이 초기화되었습니다!", filteredItemsSold: "{count}개의 아이템을 {value}$에 판매했습니다!", noFilteredItemsToSell: "판매할 필터된 아이템이 없습니다.", confirmResetGame: "모든 게임 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다!", favoriteAdded: "{item}을(를) 즐겨찾기에 추가했습니다!", favoriteRemoved: "{item}을(를) 즐겨찾기에서 제거했습니다!", itemLoadError: "오류: 아이템을 로드할 수 없습니다", dailyRewardsTitle: "일일 보상", dailyRewardDesc: "매일 로그인하여 특별한 보상을 받으세요!", dailyRewardClaimed: "{day}일차 보상을 받았습니다!", dailyRewardAlreadyClaimed: "오늘의 보상은 이미 받았습니다. 내일 다시 오세요!", dailyRewardNotReady: "오늘의 보상은 아직 받을 수 없습니다.", day: "일차", claimBtn: "받기", claimedBtn: "받음", csPathTitle: "CS 패스", csPathDesc: "케이스를 열어 경험치를 얻고 길을 따라 보상을 받으세요!", tier: "티어", xpUnit: "XP", reward: "보상", csPathRewardClaimed: "티어 {tier} 보상을 받았습니다!", dailyCaseLimitReached: "일일 케이스 열기 한도({limit})에 도달했습니다. 내일 다시 오세요!", inProgressAchievement: "진행 중", sellLastBtn: "마지막 아이템 판매", noSellableItem: "판매 가능한 아이템이 없습니다!", mute: "음소거", unmute: "음소거 해제" },
+      en: { loading: "Loading...", menuBtn: "☰ Menu", gameTitle: "🎁 CS:GO Case Opening Simulator MK", balance: "Balance:", caseCost: "Case Cost:", playerXP: "XP:", openCaseBtn: "Open Case", mainMenuTitle: "Main Menu", inventoryBtn: "Inventory", boostShopBtn: "Boost Shop", achievementsBtn: "Achievements", autoSellSettingsBtn: "Auto-Sell", autoOpenBtn: "Auto Open", versionPatchesBtn: "Patches", languageBtn: "Language", resetGameBtn: "Reset", dailyRewardsBtn: "Daily", csPathBtn: "CS Path", inventoryTitle: "Your Inventory", allRarities: "All Rarities", commonRarity: "Common", rareRarity: "Rare", epicRarity: "Epic", legendaryRarity: "Legendary", exoticRarity: "Exotic", ancientRarity: "Ancient", immortalRarity: "Immortal", allTypes: "All Types", itemType: "Items", boostType: "Boosts", filterBtn: "Filter", sellAllFilteredBtn: "Sell Filtered", noItemsMessage: "Your inventory is empty. Open a case and win items!", boostShopTitle: "Boost Shop", noBoostsMessage: "No boosts available for purchase at the moment.", achievementsTitle: "Achievements", noAchievementsMessage: "No achievements defined yet.", sellBtn: "Sell", favoriteBtn: "Favorite ⭐", unfavoriteBtn: "Unfavorite ⭐", closeBtn: "Close", autoSellSettingsTitle: "Auto-Sell Settings", autoSellDescription: "Items of selected rarities will be sold automatically upon opening.", saveSettingsBtn: "Save Settings", autoOpenTitle: "Auto Open Case", startBtn: "Start", stopBtn: "Stop", casesOpened: "Cases Opened:", languageOptionsTitle: "Language Options", englishLang: "English", turkishLang: "Turkish", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", youWon: "You Won:", notEnoughBalance: "Insufficient balance! You need {cost}$ to open a case.", autoSellStoppedBalance: "Insufficient balance! Auto case opening stopped.", itemSoldAuto: "(Auto Sold)", itemSold: "{item} sold for {price}$!", itemNotFound: "ERROR: Item not found in inventory!", boostCannotBeSold: "Boost items cannot be sold!", cannotSellFavorite: "You cannot sell a favorite item! Unfavorite it first.", boostAlreadyOwned: "You already own this boost!", boostPurchased: "{boostName} successfully purchased! Boost active!", achievementCompleted: "ACHIEVEMENT UNLOCKED", achievementRewardBalance: "{amount}$ earned!", achievementRewardBoost: "You won the {boostName} boost and it's active!", achievementBoostAlreadyOwned: "You already own the {boostName} boost.", unknownBoostReward: "Unknown boost reward!", autoSellStatusOff: "Auto-sell is off.", autoSellStatusOn: "Auto-sell rarities: {rarities}", autoOpenMinAchievements: "You need to complete at least 5 achievements for auto case opening. Currently {count} achievements completed.", autoOpenStopped: "Auto case opening stopped.", gameSavedError: "An error occurred while saving game data.", gameLoadedError: "An error occurred while loading saved game. A new game has started.", gameReset: "Game has been reset!", filteredItemsSold: "{count} items sold for {value}$!", noFilteredItemsToSell: "No filtered items to sell or all are favorite/boost.", confirmResetGame: "Are you sure you want to reset all game data? This action cannot be undone!", favoriteAdded: "{item} added to favorites!", favoriteRemoved: "You have removed {item} from your favorites!", itemLoadError: "Error: Item could not be loaded", dailyRewardsTitle: "Daily Rewards", dailyRewardDesc: "Log in every day to claim a special reward!", dailyRewardClaimed: "Reward for Day {day} claimed!", dailyRewardAlreadyClaimed: "Today's reward has already been claimed. Come back tomorrow!", dailyRewardNotReady: "Today's reward is not available yet.", day: "Day", claimBtn: "Claim", claimedBtn: "Claimed", csPathTitle: "CS Path", csPathDesc: "Earn XP by opening cases and claim rewards as you progress on the path!", tier: "Tier", xpUnit: "XP", reward: "Reward", csPathRewardClaimed: "Reward for Tier {tier} claimed!", dailyCaseLimitReached: "Daily case limit reached ({limit}). Come back tomorrow!", inProgressAchievement: "In Progress", sellLastBtn: "Sell Last Item", noSellableItem: "No sellable item in inventory!", mute: "Mute", unmute: "Unmute",
+      collectionBtn: "Collection", probabilityBtn: "Prob. Table", welcomeTitle: "Welcome!", enterUsernamePrompt: "Please start by entering a username.", usernameInputPlaceholder: "Enter your name...", saveUsernameBtn: "Save and Start", adminPanelTitle: "Admin Panel", adminAddBalance: "Add Balance", adminAddXp: "Add XP", adminAddItem: "Add Item", adminAddBtn: "Add", collectionTitle: "Collection", collectionProgress: "Progress:", probabilityTitle: "Probability Table", probabilityDesc: "These are the current item drop rates, including your active boosts.", rarityHeader: "Rarity", chanceHeader: "Chance", globalAnnouncement: "Congratulations {username}, won a {itemName}!", allItemsCollected: "Congratulations! You have collected all the items!", immortalFinder: "Immortal", immortalFinderDesc: "Obtain an immortal item.", richMan: "Rich Man", richManDesc: "Reach a balance of 1,000,000$.", allBoosts: "Booster", allBoostsDesc: "Purchase all available boosts."
+      },
+      tr: { loading: "Yükleniyor...", menuBtn: "☰ Menü", gameTitle: "🎁 CS:GO Kasa Açma Simülasyonu MK", balance: "Bakiye:", caseCost: "Kasa Maliyeti:", playerXP: "XP:", openCaseBtn: "Kasayı Aç", mainMenuTitle: "Ana Menü", inventoryBtn: "Envanter", boostShopBtn: "Boost Mağazası", achievementsBtn: "Başarımlar", autoSellSettingsBtn: "Oto-Sat", autoOpenBtn: "Oto-Aç", versionPatchesBtn: "Yamalar", languageBtn: "Dil", resetGameBtn: "Sıfırla", dailyRewardsBtn: "Günlük", csPathBtn: "CS Yolu", inventoryTitle: "Envanterin", allRarities: "Tüm Nadirlikler", commonRarity: "Sıradan", rareRarity: "Nadir", epicRarity: "Destansı", legendaryRarity: "Efsanevi", exoticRarity: "Egzotik", ancientRarity: "Kadim", immortalRarity: "Ölümsüz", allTypes: "Tüm Türler", itemType: "Eşyalar", boostType: "Boostlar", filterBtn: "Filtrele", sellAllFilteredBtn: "Filtrelenenleri Sat", noItemsMessage: "Envanterin boş. Bir kasa aç ve eşya kazan!", boostShopTitle: "Boost Mağazası", noBoostsMessage: "Şu anda satın alınabilecek boost yok.", achievementsTitle: "Başarımlar", noAchievementsMessage: "Henüz başarım tanımlanmamış.", sellBtn: "Sat", favoriteBtn: "Favorile ⭐", unfavoriteBtn: "Favoriden Çıkar ⭐", closeBtn: "Kapat", autoSellSettingsTitle: "Otomatik Sat Ayarları", autoSellDescription: "Açtığın eşyaların, seçtiğin nadirlikteki olanları otomatik olarak satılacaktır.", saveSettingsBtn: "Ayarları Kaydet", autoOpenTitle: "Otomatik Kasa Aç", startBtn: "Başlat", stopBtn: "Durdur", casesOpened: "Açılan Kasa:", languageOptionsTitle: "Dil Seçenekleri", englishLang: "English", turkishLang: "Türkçe", arabicLang: "العربية", germanLang: "Deutsch", spanishLang: "Español", azerbaijaniLang: "Azərbaycanca", russianLang: "Русский", japaneseLang: "日本語", koreanLang: "한국어", youWon: "Kazandın:", notEnoughBalance: "Yetersiz bakiye! Kasa açmak için {cost}$'a ihtiyacın var.", autoSellStoppedBalance: "Yetersiz bakiye! Otomatik kasa açma durduruldu.", itemSoldAuto: "(Otomatik Satıldı)", itemSold: "{item} {price}$ karşılığında satıldı!", itemNotFound: "HATA: Eşya envanterde bulunamadı!", boostCannotBeSold: "Boost eşyaları satılamaz!", cannotSellFavorite: "Favori bir eşyayı satamazsın! Önce favorilerden çıkar.", boostAlreadyOwned: "Bu boost'a zaten sahipsin!", boostPurchased: "{boostName} başarıyla satın alındı! Boost aktif!", achievementCompleted: "BAŞARIM AÇILDI", achievementRewardBalance: "{amount}$ kazandın!", achievementRewardBoost: "{boostName} boost'unu kazandın ve aktif edildi!", achievementBoostAlreadyOwned: "{boostName} boost'una zaten sahipsin.", unknownBoostReward: "Bilinmeyen bir boost ödülü!", autoSellStatusOff: "Otomatik satma kapalı.", autoSellStatusOn: "Otomatik satılacak nadirlikler: {rarities}", autoOpenMinAchievements: "Otomatik kasa açma için en az 5 başarım tamamlamalısın! Şu an {count} başarım tamamlandı.", autoOpenStopped: "Otomatik kasa açma durduruldu.", gameSavedError: "Oyun verileri kaydedilirken bir hata oluştu.", gameLoadedError: "Kayıtlı oyun yüklenirken hata oluştu. Yeni oyun başlatıldı.", gameReset: "Oyun sıfırlandı!", filteredItemsSold: "{count} eşya {value}$ karşılığında satıldı!", noFilteredItemsToSell: "Satılacak filtrelenmiş eşya bulunamadı veya hepsi favori/boost.", confirmResetGame: "Tüm oyun verilerini sıfırlamak istediğine emin misin? Bu işlem geri alınamaz!", favoriteAdded: "{item} favorilere eklendi!", favoriteRemoved: "{item} favorilerden çıkarıldı!", itemLoadError: "Hata: Eşya yüklenemedi", dailyRewardsTitle: "Günlük Ödüller", dailyRewardDesc: "Her gün giriş yaparak özel bir ödül kazan!", dailyRewardClaimed: "{day}. Gün ödülü alındı!", dailyRewardAlreadyClaimed: "Bugünün ödülü zaten alındı. Yarın tekrar gel!", dailyRewardNotReady: "Bugünün ödülü henüz hazır değil.", day: "Gün", claimBtn: "Al", claimedBtn: "Alındı", csPathTitle: "CS Yolu", csPathDesc: "Kasa açarak XP kazan ve yolda ilerleyerek ödülleri topla!", tier: "Kademe", xpUnit: "XP", reward: "Ödül", csPathRewardClaimed: "{tier}. Kademe ödülü alındı!", dailyCaseLimitReached: "Günlük kasa açma limitine ({limit}) ulaşıldı. Yarın tekrar gel!", inProgressAchievement: "Devam Ediyor", sellLastBtn: "Son Eşyayı Sat", noSellableItem: "Envanterde satılabilir eşya yok!", mute: "Sesi Kapat", unmute: "Sesi Aç",
+      collectionBtn: "Koleksiyon", probabilityBtn: "Şans Tablosu", welcomeTitle: "Oyuna Hoş Geldin!", enterUsernamePrompt: "Lütfen bir kullanıcı adı girerek başla.", usernameInputPlaceholder: "Kullanıcı adını gir...", saveUsernameBtn: "Kaydet ve Başla", adminPanelTitle: "Admin Paneli", adminAddBalance: "Bakiye Ekle", adminAddXp: "XP Ekle", adminAddItem: "Eşya Ekle", adminAddBtn: "Ekle", collectionTitle: "Koleksiyon", collectionProgress: "İlerleme:", probabilityTitle: "Şans Tablosu", probabilityDesc: "Bunlar, mevcut boostlarınla birlikte güncel eşya düşürme oranlarıdır.", rarityHeader: "Nadirlik", chanceHeader: "Şans", globalAnnouncement: "Tebrikler {username}, bir {itemName} kazandı!", allItemsCollected: "Tebrikler! Tüm eşyaları topladın!", immortalFinder: "Ölümsüz", immortalFinderDesc: "Ölümsüz bir eşya elde et.", richMan: "Zengin", richManDesc: "1.000.000$ bakiyeye ulaş.", allBoosts: "Güçlendirici", allBoostsDesc: "Mevcut tüm boostları satın al."
+      },
+      // Diğer diller de benzer şekilde güncellenebilir...
     };
 
     const patchNotesData = [
+      { version: "V1.9.0", text: { en: "Added mandatory username, global announcement system for rare drops, item collection, probability table, and a secret admin panel (Ctrl+Alt+A).", tr: "Zorunlu kullanıcı adı, nadir eşyalar için duyuru sistemi, eşya koleksiyonu, şans tablosu ve gizli bir admin paneli (Ctrl+Alt+A) eklendi."}},
       { version: "V1.8.1", text: { en: "Replaced all emojis with SVG icons for a cleaner interface. Fixed a bug where patch notes were not displaying.", tr: "Daha temiz bir arayüz için tüm emojiler SVG ikonlarla değiştirildi. Yama notlarının görüntülenmemesine neden olan bir hata düzeltildi."}},
       { version: "V1.8.0", text: { en: "Added a stylish achievement toast notification, utility buttons (Sell Last, Mute), and new achievements for long-term goals.", tr: "Şık bir başarım bildirimi, yardımcı butonlar (Son Eşyayı Sat, Sesi Kapat) ve uzun vadeli hedefler için yeni başarımlar eklendi."} },
       { version: "V1.7.0", text: { en: "Major update! Daily Rewards and CS Path progression systems added. Three new languages (Russian, Japanese, Korean) and a daily case opening limit implemented.", tr: "Büyük güncelleme! Günlük Ödüller ve CS Yolu ilerleme sistemleri eklendi. Üç yeni dil (Rusça, Japonca, Korece) ve günlük kasa açma limiti getirildi."} },
     ];
     
     const itemsData = [
-      { id: "item_0", name: { en: "Common Knife", tr: "Sıradan Bıçak", ru:"Обычный нож", ja:"コモンナイフ", ko:"일반 칼"}, rarity: "common", img: "https://via.placeholder.com/100/666666/FFFFFF?text=CB" },
-      { id: "item_1", name: { en: "Rare Sword", tr: "Nadir Kılıç", ru:"Редкий меч", ja:"レアソード", ko:"희귀한 검"}, rarity: "rare", img: "https://via.placeholder.com/100/4287f5/FFFFFF?text=RK" },
-      { id: "item_2", name: { en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi", ru:"Эпический коготь дракона", ja:"エピックドラゴンクロー", ko:"에픽 드래곤 클로"}, rarity: "epic", img: "https://via.placeholder.com/100/a142f5/FFFFFF?text=DEP" },
-      { id: "item_3", name: { en: "Legendary Shield", tr: "Efsanevi Kalkan", ru:"Легендарный щит", ja:"レジェンダリーシールド", ko:"전설의 방패"}, rarity: "legendary", img: "https://via.placeholder.com/100/f5a742/FFFFFF?text=EAK" },
-      { id: "item_12", name: { en: "Exotic Gauntlets", tr: "Exotic Eldivenler", ru:"Экзотические рукавицы", ja:"エキゾチックガントレット", ko:"이국적인 건틀릿"}, rarity: "exotic", img: "https://via.placeholder.com/100/a0aec0/FFFFFF?text=ETE" },
-      { id: "item_13", name: { en: "Ancient Soul Render", tr: "Kadim Ruh Keser", ru:"Древний потрошитель душ", ja:"エンシェントソウルレンダー", ko:"고대 영혼 절단기"}, rarity: "ancient", img: "https://via.placeholder.com/100/e53e3e/FFFFFF?text=ARK" },
-      { id: "item_14", name: { en: "Immortal Spear", tr: "Ölümsüz Mızrak", ru:"Бессмертное копье", ja:"イモータルスピアー", ko:"불멸의 창"}, rarity: "immortal", img: "https://via.placeholder.com/100/d69e2e/FFFFFF?text=IEM" },
+      { id: "item_0", name: { en: "Common Knife", tr: "Sıradan Bıçak", ru:"Обычный нож", ja:"コモンナイフ", ko:"일반 칼"}, rarity: "common", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451a6659a0b16a246a/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_1", name: { en: "Rare Sword", tr: "Nadir Kılıç", ru:"Редкий меч", ja:"レアソード", ko:"희귀한 검"}, rarity: "rare", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451a9568770d2b67e7/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_2", name: { en: "Epic Dragon Claw", tr: "Destansı Ejderha Pençesi", ru:"Эпический коготь дракона", ja:"エピックドラゴンクロー", ko:"에픽 드래곤 클로"}, rarity: "epic", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451ac2a281057c7901/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_3", name: { en: "Legendary Shield", tr: "Efsanevi Kalkan", ru:"Легендарный щит", ja:"レジェンダリーシールド", ko:"전설의 방패"}, rarity: "legendary", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b2f63f253b341f2/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_12", name: { en: "Exotic Gauntlets", tr: "Exotic Eldivenler", ru:"Экзотические рукавицы", ja:"エキゾチックガントレット", ko:"이국적인 건틀릿"}, rarity: "exotic", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b6a7a72c478a0f9/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_13", name: { en: "Ancient Soul Render", tr: "Kadim Ruh Keser", ru:"Древний потрошитель душ", ja:"エンシェントソウルレンダー", ko:"고대 영혼 절단기"}, rarity: "ancient", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451b9d40902c1f9d45/view?project=654519f71607594a953e&mode=admin" },
+      { id: "item_14", name: { en: "Immortal Spear", tr: "Ölümsüz Mızrak", ru:"Бессмертное копье", ja:"イモータルスピアー", ko:"불멸의 창"}, rarity: "immortal", img: "https://cloud.appwrite.io/v1/storage/buckets/65451a37885b3065fb53/files/65451be8c5c77a83e020/view?project=654519f71607594a953e&mode=admin" },
     ];
     
     const boostsData = [
@@ -1531,6 +1730,10 @@
         { id: "millionaire", name: { en: "Millionaire", tr: "Milyoner" }, description: { en: "Earn a total of 10,000$.", tr: "Toplam 10,000$ kazan." }, target: { totalMoneyEarned: 10000 }, reward: { type: "balance", amount: 2000 } },
         { id: "merchant", name: { en: "Merchant", tr: "Tüccar" }, description: { en: "Sell 10 items.", tr: "10 eşya sat." }, target: { itemsSold: 10 }, reward: { type: "xp", amount: 100 } },
         { id: "collector", name: { en: "Collector", tr: "Koleksiyoncu" }, description: { en: "Have 20 different items in your inventory.", tr: "Envanterinde 20 farklı eşya bulundur." }, target: { inventoryCount: 20 }, reward: { type: "balance", amount: 500 } },
+        // YENİ BAŞARIMLAR
+        { id: "immortal_finder", name: { en: "Immortal", tr: "Ölümsüz" }, description: { en: "Obtain an immortal item.", tr: "Ölümsüz bir eşya elde et." }, target: { hasRarity: "immortal" }, reward: { type: "balance", amount: 10000 } },
+        { id: "rich_man", name: { en: "Rich Man", tr: "Zengin" }, description: { en: "Reach a balance of 1,000,000$.", tr: "1.000.000$ bakiyeye ulaş." }, target: { balance: 1000000 }, reward: { type: "xp", amount: 5000 } },
+        { id: "all_boosts", name: { en: "Booster", tr: "Güçlendirici" }, description: { en: "Purchase all available boosts.", tr: "Mevcut tüm boostları satın al." }, target: { allBoosts: true }, reward: { type: "balance", amount: 2500 } },
     ];
 
     const dailyRewardsData = [
@@ -1596,6 +1799,16 @@
         achievementToast: document.getElementById("achievement-toast"),
         toastTitle: document.getElementById("toast-title"),
         toastDesc: document.getElementById("toast-desc"),
+        // YENİ DOM ELEMENTLERİ
+        usernameModal: document.getElementById("usernameModal"),
+        usernameInput: document.getElementById("usernameInput"),
+        saveUsernameBtn: document.getElementById("saveUsernameBtn"),
+        globalAnnouncement: document.getElementById("global-announcement"),
+        collectionGrid: document.getElementById("collection-grid"),
+        collectionProgress: document.getElementById("collection-progress"),
+        probabilityTableBody: document.querySelector("#probability-table tbody"),
+        adminItemSelect: document.getElementById("adminItem"),
+        caseContainer: document.getElementById("case"),
     };
 
     const sfx = {
@@ -1620,9 +1833,10 @@
     const rarityColors = { common: '#555', rare: '#4299e1', epic: '#805ad5', legendary: '#ed8936', exotic: '#cbd5e0', ancient: '#f56565', immortal: '#ecc94b' };
     const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4, exotic: 5, ancient: 6, immortal: 7 };
     let rarityWeights, baseRarityWeights = { common: 0.60, rare: 0.25, epic: 0.10, legendary: 0.03, exotic: 0.01, ancient: 0.005, immortal: 0.005 };
+    const ADMIN_PASSWORD = "admin123";
 
     function translateText(key, replacements = {}) {
-        let text = (translations[currentLang]?.[key]) || translations['en']?.[key] || key;
+        let text = (translations[currentLang]?.[key]) || (translations['tr']?.[key]) || key;
         for (const placeholder in replacements) {
             text = text.replace(`{${placeholder}}`, replacements[placeholder]);
         }
@@ -1645,6 +1859,8 @@
             languageSelectModal: updateLanguageButtons,
             dailyRewardModal: updateDailyRewardsUI,
             csPathModal: updateCsPathUI,
+            collectionModal: renderCollection, // Yeni
+            probabilityModal: renderProbabilityTable, // Yeni
         };
         modalActions[modalId]?.();
     }
@@ -1701,6 +1917,7 @@
         
         const wonItemData = getRandomItemByRarity(); 
         
+        // --- DÜZELTİLMİŞ ANİMASYON MANTIĞI ---
         dom.items.innerHTML = '';
         dom.items.style.transition = "none";
         dom.items.style.transform = "translateX(0)";
@@ -1713,13 +1930,15 @@
             dom.items.appendChild(createItemElement(item));
         }
 
+        // Hesaplamalar için ilk elemanın tam genişliğini al
         const itemFullWidth = dom.items.children[0].offsetWidth + (parseFloat(getComputedStyle(dom.items.children[0]).marginLeft) * 2);
-        const scrollAmount = (winIndex * itemFullWidth) - (dom.items.parentElement.offsetWidth / 2) + (itemFullWidth / 2);
+        const scrollAmount = (winIndex * itemFullWidth) - (dom.caseContainer.offsetWidth / 2) + (itemFullWidth / 2);
 
         dom.items.style.transition = `transform 3.5s cubic-bezier(0.25, 1, 0.5, 1)`;
         dom.items.style.transform = `translateX(-${scrollAmount}px)`;
         
         await new Promise(resolve => setTimeout(resolve, 3550));
+        // --- ANİMASYON MANTIĞI SONU ---
 
         dom.items.children[winIndex].classList.add('highlighted');
         const wonItemName = getTranslatedTextFromObject(wonItemData.name);
@@ -1728,6 +1947,11 @@
 
         playerStats.xp += XP_PER_CASE;
         playerStats.raritiesWon[wonItemData.rarity] = true;
+        playerStats.collection[wonItemData.id] = true; // Koleksiyona ekle
+
+        if (rarityOrder[wonItemData.rarity] >= rarityOrder.legendary) {
+            showGlobalAnnouncement(playerStats.username, wonItemData);
+        }
 
         if (autoSellRarities.includes(wonItemData.rarity)) {
             const sellPrice = calculateSellPrice(wonItemData);
@@ -1749,9 +1973,15 @@
         if(!isAuto) dom.openBtn.disabled = false;
     }
 
-    function createItemElement(itemData) {
+    function createItemElement(itemData, isCollection = false) {
         const el = document.createElement("div");
         el.className = `item ${itemData.rarity}`;
+        if (isCollection) {
+            el.classList.add('collection-item');
+            if (playerStats.collection[itemData.id]) {
+                el.classList.add('found');
+            }
+        }
         el.innerHTML = `
             <img src="${itemData.img}" alt="${getTranslatedTextFromObject(itemData.name)}" loading="lazy">
             <div class="item-name">${getTranslatedTextFromObject(itemData.name)}</div>
@@ -1914,7 +2144,10 @@
         else if (rewardData.type === 'xp') playerStats.xp += rewardData.amount;
         else if (rewardData.type === 'item') {
             const item = itemsData.find(i => i.id === rewardData.itemId);
-            if (item) inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+            if (item) {
+                inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+                playerStats.collection[item.id] = true;
+            }
         } else if (rewardData.type === 'boost') {
             const boost = boostsData.find(b => b.id === rewardData.boostId);
             if (boost && !inventory.some(i => i.id === boost.id)) {
@@ -1946,6 +2179,11 @@
             if (target.boughtBoost && playerStats.boughtBoost >= target.boughtBoost) isCompleted = true;
             if (target.itemsSold && playerStats.itemsSold >= target.itemsSold) isCompleted = true;
             if (target.inventoryCount && playerStats.inventoryCount >= target.inventoryCount) isCompleted = true;
+            if (target.balance && currentBalance >= target.balance) isCompleted = true;
+            if (target.allBoosts) {
+                const ownedBoosts = inventory.filter(i => i.type === 'boost').length;
+                if (ownedBoosts === boostsData.length) isCompleted = true;
+            }
 
             if (isCompleted) {
                 if (!achProgress) playerStats.achievements.push({ id: ach.id, completed: true });
@@ -2030,7 +2268,10 @@
         if (reward.type === 'balance') currentBalance += reward.amount;
         else if (reward.type === 'item') {
             const item = itemsData.find(i => i.id === reward.itemId);
-            if(item) inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+            if(item) {
+                inventory.push({ ...item, id: nextItemId++, type: 'item', isFavorite: false });
+                playerStats.collection[item.id] = true;
+            }
         } else if (reward.type === 'boost') {
             const boost = boostsData.find(b => b.id === reward.boostId);
             if (boost && !inventory.some(i => i.id === boost.id)) {
@@ -2047,16 +2288,17 @@
     }
     
     function initializeGame(isReset = false) {
-         currentLang = localStorage.getItem('gameLanguage_v5') || 'tr';
+         currentLang = localStorage.getItem('gameData_v5') || 'tr';
          currentBalance = 1000;
          inventory = [];
          nextItemId = 0;
          lastWonItem = null;
-         playerStats = { caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
+         playerStats = { username: null, collection: {}, caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
          autoSellRarities = [];
          if (isReset) {
             stopAutoOpen();
             showErrorMessage("gameReset", 3000);
+            checkUsername();
          }
          updateAllUI();
     }
@@ -2073,10 +2315,10 @@
     function loadGameData() {
         try {
             const savedData = localStorage.getItem('gameData_v5');
-            if (!savedData) { initializeGame(); return; }
+            if (!savedData) { initializeGame(); checkUsername(); return; }
             const data = JSON.parse(savedData);
             
-            const defaultStats = { caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
+            const defaultStats = { username: null, collection: {}, caseOpened: 0, totalMoneyEarned: 0, raritiesWon: {}, boughtBoost: 0, favoriteCount: 0, xp: 0, dailyRewardCycle: 0, lastClaimDate: null, csPathClaimedTiers: [], achievements: [], itemsSold: 0, inventoryCount: 0, casesOpenedToday: 0, lastCaseOpenDate: null, isMuted: false };
             
             currentLang = data.lang ?? 'tr';
             currentBalance = data.balance ?? 1000;
@@ -2086,6 +2328,7 @@
             autoSellRarities = data.autoSellRarities ?? [];
 
             updateAllUI();
+            checkUsername();
             console.log("Oyun başarıyla yüklendi!");
         } catch (e) {
             console.error("Yükleme hatası:", e);
@@ -2101,13 +2344,31 @@
         document.querySelectorAll('[data-lang-key]').forEach(element => {
             const key = element.dataset.langKey;
             
-            // DÜZELTME: Sadece metin içeren elementleri güncelle
-            if (element.children.length === 0 || (element.children.length === 1 && element.children[0].tagName === 'SPAN' && !["balance-amount", "cost-amount", "xp-amount"].includes(element.children[0].id))) {
-                element.textContent = translateText(key);
+            // Placeholder'ları güncelle
+            if (element.hasAttribute('placeholder')) {
+                const placeholderKey = `${element.id}Placeholder`;
+                element.placeholder = translateText(placeholderKey);
             }
-        });
-        document.querySelectorAll('[data-lang-key][title]').forEach(el => {
-            el.title = translateText(el.dataset.langKey);
+            
+            // İçerik metnini güncelle
+            const balanceSpan = element.querySelector('#balance-amount');
+            const costSpan = element.querySelector('#cost-amount');
+            const xpSpan = element.querySelector('#xp-amount');
+
+            if (balanceSpan || costSpan || xpSpan) {
+                element.firstChild.textContent = translateText(key) + ' ';
+            } else {
+                 if (element.children.length === 0 || (element.children.length === 1 && element.children[0].tagName === 'SPAN' && element.children[0].classList.contains("menu-icon"))) {
+                     if (element.children.length === 1 && element.children[0].tagName === 'SPAN' && element.children[0].classList.contains("menu-icon")) {
+                        const icon = element.querySelector('.menu-icon');
+                        element.textContent = '';
+                        element.appendChild(icon);
+                        element.appendChild(document.createTextNode(" " + translateText(key)));
+                     } else {
+                        element.textContent = translateText(key);
+                     }
+                 }
+            }
         });
         updateLanguageButtons();
         updateUI();
@@ -2116,6 +2377,7 @@
         updateDailyRewardsUI();
         updateCsPathUI();
         updateAutoSellStatus();
+        populateAdminItemSelect();
     }
 
     function updateAllUI() {
@@ -2127,6 +2389,7 @@
         updateDailyRewardNotification();
         updateTime();
         toggleMute(playerStats.isMuted, true);
+        populateAdminItemSelect();
     }
 
     function updateUI() {
@@ -2155,6 +2418,9 @@
         dom.autoOpenStopBtn.addEventListener('click', stopAutoOpen);
         dom.sellLastBtn.addEventListener('click', sellLastItem);
         dom.muteBtn.addEventListener('click', () => toggleMute());
+        dom.saveUsernameBtn.addEventListener('click', saveUsername);
+        dom.usernameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveUsername(); });
+        document.addEventListener('keydown', handleAdminPanelKey);
 
         document.getElementById("main-menu-btn").addEventListener('click', () => {
             updateDailyRewardNotification();
@@ -2162,7 +2428,10 @@
         });
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (event) => {
-                if (event.target === overlay) closeModal(overlay.id);
+                // Kullanıcı adı modalı hariç diğerleri dışarı tıklamayla kapanabilir
+                if (event.target === overlay && overlay.id !== 'usernameModal') {
+                     closeModal(overlay.id);
+                }
             });
         });
         document.querySelectorAll('#language-options button').forEach(button => {
@@ -2405,6 +2674,109 @@
         }
         dom.muteIconContainer.innerHTML = playerStats.isMuted ? svgIcons.volumeOff : svgIcons.volumeOn;
         if(!initializing) saveGameData();
+    }
+
+    // --- YENİ EKLENEN FONKSİYONLAR ---
+
+    function checkUsername() {
+        if (!playerStats.username) {
+            dom.usernameModal.classList.add('show');
+        }
+    }
+
+    function saveUsername() {
+        const username = dom.usernameInput.value.trim();
+        if (username) {
+            playerStats.username = username;
+            saveGameData();
+            closeModal('usernameModal');
+        }
+    }
+
+    function showGlobalAnnouncement(username, itemData) {
+        const itemName = getTranslatedTextFromObject(itemData.name);
+        dom.globalAnnouncement.innerHTML = `🏆 ${translateText('globalAnnouncement', { username, itemName })}`;
+        dom.globalAnnouncement.classList.add('show');
+        setTimeout(() => {
+            dom.globalAnnouncement.classList.remove('show');
+        }, 6000);
+    }
+
+    function renderCollection() {
+        dom.collectionGrid.innerHTML = '';
+        let foundCount = 0;
+        itemsData.forEach(item => {
+            if (playerStats.collection[item.id]) {
+                foundCount++;
+            }
+            dom.collectionGrid.appendChild(createItemElement(item, true));
+        });
+        dom.collectionProgress.textContent = `${translateText('collectionProgress')} ${foundCount} / ${itemsData.length}`;
+        if (foundCount === itemsData.length) {
+            dom.collectionProgress.textContent += ` - ${translateText('allItemsCollected')}`;
+        }
+    }
+
+    function renderProbabilityTable() {
+        dom.probabilityTableBody.innerHTML = '';
+        Object.keys(rarityWeights).sort((a,b) => rarityOrder[a] - rarityOrder[b]).forEach(rarity => {
+            const chance = rarityWeights[rarity] * 100;
+            const row = dom.probabilityTableBody.insertRow();
+            row.innerHTML = `
+                <td><span style="color:${rarityColors[rarity]}; font-weight: bold;">${translateText(`${rarity}Rarity`)}</span></td>
+                <td>${chance.toFixed(4)}%</td>
+            `;
+        });
+    }
+
+    function handleAdminPanelKey(event) {
+        if (event.ctrlKey && event.altKey && event.key === 'a') {
+            event.preventDefault();
+            const password = prompt("Admin şifresini girin:");
+            if (password === ADMIN_PASSWORD) {
+                openModal('adminPanelModal');
+            } else if (password) {
+                alert("Yanlış şifre!");
+            }
+        }
+    }
+
+    function populateAdminItemSelect() {
+        dom.adminItemSelect.innerHTML = '';
+        itemsData.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = getTranslatedTextFromObject(item.name);
+            dom.adminItemSelect.appendChild(option);
+        });
+    }
+
+    function adminAddBalance() {
+        const amount = parseInt(document.getElementById('adminBalance').value, 10);
+        if (!isNaN(amount)) {
+            currentBalance += amount;
+            updateUI();
+        }
+    }
+
+    function adminAddXp() {
+        const amount = parseInt(document.getElementById('adminXp').value, 10);
+        if (!isNaN(amount)) {
+            playerStats.xp += amount;
+            updateUI();
+            updateCsPathUI();
+        }
+    }
+
+    function adminAddItem() {
+        const itemId = dom.adminItemSelect.value;
+        const itemData = itemsData.find(i => i.id === itemId);
+        if (itemData) {
+            const newItem = { ...itemData, id: nextItemId++, type: "item", isFavorite: false };
+            inventory.push(newItem);
+            updateInventory();
+            saveGameData();
+        }
     }
   </script>
 </body>
